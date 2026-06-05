@@ -145,14 +145,6 @@ async function loadMemories() {
   renderMarkers();
 }
 
-function getMarkerIcon(tags) {
-  if (!tags || tags.length === 0) return '📍';
-  const firstTag = tags[0];
-  const firstChar = Array.from(firstTag)[0];
-  // Simple check if it's likely an emoji or we just use the first char
-  return firstChar || '📍';
-}
-
 function renderMarkers() {
   markersLayer.clearLayers();
   if (tourPolyline) {
@@ -163,13 +155,11 @@ function renderMarkers() {
   let filtered = getFilteredMemories();
     
   filtered.forEach(memory => {
-    const iconChar = getMarkerIcon(memory.tags);
-    
     const customIcon = L.divIcon({
       className: 'custom-div-icon',
-      html: `<div style="background-color: white; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ef4444; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px;">${iconChar}</div>`,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      html: `<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
     });
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
