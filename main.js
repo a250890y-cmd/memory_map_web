@@ -1,9 +1,9 @@
 import './style.css';
 import 'leaflet/dist/leaflet.css';
+import L from './leaflet-setup';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import L from 'leaflet';
 import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
 import { auth } from './firebase';
@@ -573,6 +573,7 @@ function setupEventListeners() {
   tagsContainer.addEventListener('click', () => tagInput.focus());
   
   tagInput.addEventListener('keydown', (e) => {
+    if (e.isComposing) return; // 日本語入力中のEnterやSpaceを無視する
     if (e.key === 'Enter' || e.key === ' ' || e.key === '　' || e.key === ',') {
       e.preventDefault();
       const val = tagInput.value.trim().replace(',', '');
