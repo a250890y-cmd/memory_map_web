@@ -1,5 +1,8 @@
 import './style.css';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
@@ -48,7 +51,14 @@ async function init() {
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   currentLayer.addTo(map);
-  markersLayer = L.layerGroup().addTo(map);
+  
+  markersLayer = L.markerClusterGroup({
+    maxClusterRadius: 40,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true
+  });
+  map.addLayer(markersLayer);
 
   setupEventListeners();
 
@@ -157,9 +167,9 @@ function renderMarkers() {
   filtered.forEach(memory => {
     const customIcon = L.divIcon({
       className: 'custom-div-icon',
-      html: `<div style="background-color: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
+      html: `<div style="background-color: #ef4444; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
     });
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
@@ -480,13 +490,12 @@ async function playAlbumTour() {
       return;
     }
     const mem = memoriesToPlay[index];
-    map.flyTo([mem.lat, mem.lng], 14, { duration: 1.5 });
     
-    tourTimeout = setTimeout(() => {
-      if (mem.marker) mem.marker.openPopup();
+    markersLayer.zoomToShowLayer(mem.marker, () => {
+      mem.marker.openPopup();
       index++;
       tourTimeout = setTimeout(playNext, 4000);
-    }, 1600);
+    });
   };
   
   tourTimeout = setTimeout(playNext, 1000);
