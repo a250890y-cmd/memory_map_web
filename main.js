@@ -324,6 +324,23 @@ function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
   
+  // Mobile Sidebar Toggle
+  const btnHamburger = document.getElementById('btn-hamburger');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const sidebar = document.querySelector('.sidebar');
+  
+  const toggleSidebar = () => {
+    sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('hidden');
+  };
+  const closeSidebar = () => {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.add('hidden');
+  };
+  
+  btnHamburger.addEventListener('click', toggleSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+  
   // Auth Elements
   const emailInput = document.getElementById('login-email');
   const passwordInput = document.getElementById('login-password');

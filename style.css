@@ -484,3 +484,55 @@ body {
 .btn-edit-popup:hover {
   color: var(--primary-hover);
 }
+
+/* Mobile Sidebar & Hamburger */
+.btn-hamburger {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2000;
+  border: none;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--primary-color);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .btn-hamburger {
+    display: flex;
+  }
+  .sidebar {
+    transform: translateX(-120%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001; /* Above overlay */
+    width: 300px;
+    max-width: 85vw;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 0 20px 20px 0;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  /* Bottom controls adjust */
+  .bottom-controls {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+}
