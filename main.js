@@ -13,10 +13,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 });
 
-const categoryEmojis = {
-  camera: '📷', food: '🍽️', cafe: '☕', sightseeing: '🗼',
-  nature: '⛰️', hotel: '🏨', shopping: '🛍️'
-};
 const categoryLabels = {
   camera: '写真', food: '食事', cafe: 'カフェ', sightseeing: '観光',
   nature: '景色', hotel: '宿泊', shopping: '買い物'
@@ -40,9 +36,11 @@ let currentLat = 36.2048;
 let currentLng = 138.2529;
 let currentPhotoUrls = [];
 let currentFilterAlbum = '';
+let currentFilterTag = '';
 let currentSearchQuery = '';
 let currentDateFrom = '';
 let currentDateTo = '';
+let currentTags = [];
 
 async function init() {
   const japanCenter = [36.2048, 138.2529];
@@ -54,7 +52,7 @@ async function init() {
 
   setupEventListeners();
 
-  map.on('click', (e) => {
+  map.on('contextmenu', (e) => {
     placeTempMarker(e.latlng.lat, e.latlng.lng);
   });
   
@@ -111,8 +109,10 @@ function placeTempMarker(lat, lng) {
     tempMarker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
     
     const popupContent = document.createElement('div');
-    popupContent.innerHTML = `<button class="btn primary" style="padding: 6px 12px; font-size: 0.9rem; border-radius: 8px;">この場所に思い出を追加</button>
-                              <div style="font-size: 0.75rem; color: #666; margin-top: 8px; text-align: center;">ピンはドラッグして移動できます</div>`;
+    popupContent.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;">
+                                <button class="btn primary" style="padding: 6px 12px; font-size: 0.9rem; border-radius: 8px; width: 100%;">この場所に思い出を追加</button>
+                                <div style="font-size: 0.75rem; color: #666; margin-top: 8px;">ピンはドラッグして移動できます</div>
+                              </div>`;
     popupContent.querySelector('button').addEventListener('click', () => {
       openMemoryModal();
     });
@@ -136,9 +136,21 @@ async function loadMemories() {
   allMemories = await getAllMemories();
   allMemories.forEach(m => {
     if (m.imageUrl && !m.imageUrls) m.imageUrls = [m.imageUrl];
+    if (m.category && !m.tags) {
+      m.tags = [categoryLabels[m.category] || m.category];
+    }
+    if (!m.tags) m.tags = [];
   });
   renderSidebar();
   renderMarkers();
+}
+
+function getMarkerIcon(tags) {
+  if (!tags || tags.length === 0) return '📍';
+  const firstTag = tags[0];
+  const firstChar = Array.from(firstTag)[0];
+  // Simple check if it's likely an emoji or we just use the first char
+  return firstChar || '📍';
 }
 
 function renderMarkers() {
@@ -151,18 +163,17 @@ function renderMarkers() {
   let filtered = getFilteredMemories();
     
   filtered.forEach(memory => {
-    const emoji = categoryEmojis[memory.category] || '📷';
-    const catLabel = categoryLabels[memory.category] || 'その他';
+    const iconChar = getMarkerIcon(memory.tags);
     
     const customIcon = L.divIcon({
       className: 'custom-div-icon',
-      html: `<div style="background-color: white; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ef4444; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px;">${emoji}</div>`,
+      html: `<div style="background-color: white; width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ef4444; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px;">${iconChar}</div>`,
       iconSize: [36, 36],
       iconAnchor: [18, 18]
     });
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
-    memory.marker = marker; // Store reference for tour
+    memory.marker = marker;
     
     const imagesHtml = (memory.imageUrls || []).map(url => `<img src="${url}" class="popup-image" style="cursor: pointer;" />`).join('');
     
@@ -181,12 +192,15 @@ function renderMarkers() {
         ` : ''}
       </div>
     ` : '';
+    
+    const tagsHtml = (memory.tags || []).map(t => `<div class="popup-tag">${t}</div>`).join('');
 
     const popupContent = `
       <div style="min-width: 240px; max-width: 300px;">
         ${galleryHtml}
         <div style="padding: 0 16px 16px 16px; margin-top: ${imagesHtml ? '0' : '16px'};">
-          <div class="popup-category">${catLabel} ${memory.album ? `| ${memory.album}` : ''}</div>
+          ${tagsHtml ? `<div class="popup-tags">${tagsHtml}</div>` : ''}
+          ${memory.album ? `<div class="popup-category" style="margin-bottom: 4px;">📂 ${memory.album}</div>` : ''}
           <div class="popup-title">${memory.title || '無題の思い出'}</div>
           <div class="popup-diary">${memory.diary || ''}</div>
           <div class="popup-meta">
@@ -204,6 +218,9 @@ function getFilteredMemories() {
   let filtered = allMemories;
   if (currentFilterAlbum) {
     filtered = filtered.filter(m => m.album === currentFilterAlbum);
+  }
+  if (currentFilterTag) {
+    filtered = filtered.filter(m => m.tags && m.tags.includes(currentFilterTag));
   }
   if (currentSearchQuery) {
     const q = currentSearchQuery.toLowerCase();
@@ -232,38 +249,75 @@ function getFilteredMemories() {
 }
 
 function renderSidebar() {
+  // Albums
   const albums = [...new Set(allMemories.map(m => m.album).filter(Boolean))];
-  const listEl = document.getElementById('sidebar-album-list');
-  const dataList = document.getElementById('album-datalist');
+  const albumListEl = document.getElementById('sidebar-album-list');
+  const albumDataList = document.getElementById('album-datalist');
   
-  listEl.innerHTML = '';
-  
-  const allLi = document.createElement('li');
-  allLi.textContent = 'すべて表示';
-  allLi.dataset.album = '';
-  if (currentFilterAlbum === '') allLi.classList.add('active');
-  allLi.addEventListener('click', () => setFilter(''));
-  listEl.appendChild(allLi);
+  albumListEl.innerHTML = '';
+  const albumAllLi = document.createElement('li');
+  albumAllLi.textContent = 'すべて表示';
+  if (currentFilterAlbum === '') albumAllLi.classList.add('active');
+  albumAllLi.addEventListener('click', () => setAlbumFilter(''));
+  albumListEl.appendChild(albumAllLi);
   
   albums.forEach(album => {
     const li = document.createElement('li');
     li.textContent = album;
-    li.dataset.album = album;
     if (currentFilterAlbum === album) li.classList.add('active');
-    li.addEventListener('click', () => setFilter(album));
-    listEl.appendChild(li);
+    li.addEventListener('click', () => setAlbumFilter(album));
+    albumListEl.appendChild(li);
   });
   
-  dataList.innerHTML = '';
+  albumDataList.innerHTML = '';
   albums.forEach(album => {
     const opt = document.createElement('option');
     opt.value = album;
-    dataList.appendChild(opt);
+    albumDataList.appendChild(opt);
+  });
+
+  // Tags
+  let allTags = [];
+  allMemories.forEach(m => {
+    if (m.tags) allTags.push(...m.tags);
+  });
+  const uniqueTags = [...new Set(allTags)];
+  
+  const tagListEl = document.getElementById('sidebar-tag-list');
+  const tagDataList = document.getElementById('tag-datalist');
+  
+  tagListEl.innerHTML = '';
+  const tagAllLi = document.createElement('li');
+  tagAllLi.textContent = 'すべて表示';
+  if (currentFilterTag === '') tagAllLi.classList.add('active');
+  tagAllLi.addEventListener('click', () => setTagFilter(''));
+  tagListEl.appendChild(tagAllLi);
+  
+  uniqueTags.forEach(tag => {
+    const li = document.createElement('li');
+    li.textContent = tag;
+    if (currentFilterTag === tag) li.classList.add('active');
+    li.addEventListener('click', () => setTagFilter(tag));
+    tagListEl.appendChild(li);
+  });
+
+  tagDataList.innerHTML = '';
+  uniqueTags.forEach(tag => {
+    const opt = document.createElement('option');
+    opt.value = tag;
+    tagDataList.appendChild(opt);
   });
 }
 
-function setFilter(albumName) {
+function setAlbumFilter(albumName) {
   currentFilterAlbum = albumName;
+  if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
+  renderSidebar();
+  renderMarkers();
+}
+
+function setTagFilter(tagName) {
+  currentFilterTag = tagName;
   if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
   renderSidebar();
   renderMarkers();
@@ -312,6 +366,30 @@ function updatePreviewGallery() {
   }
 }
 
+function updateTagChips() {
+  const container = document.getElementById('tags-container');
+  const input = document.getElementById('memory-tag-input');
+  
+  // Remove existing chips
+  container.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  
+  currentTags.forEach((tag, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${tag}<button type="button" data-index="${index}">✕</button>`;
+    container.insertBefore(chip, input);
+  });
+  
+  container.querySelectorAll('.tag-chip button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = e.target.getAttribute('data-index');
+      currentTags.splice(idx, 1);
+      updateTagChips();
+    });
+  });
+}
+
 function openMemoryModal(id = null) {
   if (tempMarker) tempMarker.closePopup();
   if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
@@ -320,12 +398,14 @@ function openMemoryModal(id = null) {
   const titleInput = document.getElementById('memory-title');
   const diaryInput = document.getElementById('memory-diary');
   const albumInput = document.getElementById('memory-album');
-  const categorySelect = document.getElementById('memory-category');
   const datetimeInput = document.getElementById('memory-datetime');
   const idInput = document.getElementById('memory-id');
   const modalTitle = document.getElementById('modal-title');
   const btnDelete = document.getElementById('btn-delete-memory');
+  const tagInput = document.getElementById('memory-tag-input');
   
+  tagInput.value = '';
+
   if (id !== null) {
     const memory = allMemories.find(m => m.id === id);
     if (!memory) return;
@@ -335,7 +415,7 @@ function openMemoryModal(id = null) {
     titleInput.value = memory.title || '';
     diaryInput.value = memory.diary || '';
     albumInput.value = memory.album || '';
-    categorySelect.value = memory.category || 'camera';
+    currentTags = [...(memory.tags || [])];
     currentPhotoUrls = [...(memory.imageUrls || [])];
     currentLat = memory.lat;
     currentLng = memory.lng;
@@ -347,21 +427,21 @@ function openMemoryModal(id = null) {
     }
     
     btnDelete.classList.remove('hidden');
-    updatePreviewGallery();
   } else {
     modalTitle.textContent = '思い出を記録';
     idInput.value = '';
     titleInput.value = '';
     diaryInput.value = '';
     albumInput.value = '';
-    categorySelect.value = 'camera';
+    currentTags = [];
     datetimeInput.value = toDatetimeLocal(new Date());
     currentPhotoUrls = [];
     
     btnDelete.classList.add('hidden');
-    updatePreviewGallery();
   }
   
+  updatePreviewGallery();
+  updateTagChips();
   modal.classList.remove('hidden');
 }
 
@@ -381,7 +461,6 @@ async function playAlbumTour() {
     return;
   }
   
-  // Sort chronologically
   memoriesToPlay.sort((a, b) => {
     const tA = new Date(a.datetime || a.timestamp).getTime();
     const tB = new Date(b.datetime || b.timestamp).getTime();
@@ -393,13 +472,9 @@ async function playAlbumTour() {
   if (tourPolyline) map.removeLayer(tourPolyline);
   tourPolyline = L.polyline(latlngs, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
   
-  // Fit bounds to show whole path
   map.fitBounds(tourPolyline.getBounds(), { padding: [50, 50] });
-  
-  // Close any open popups
   map.closePopup();
 
-  // Mobile: hide sidebar when playing tour
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   if (window.innerWidth <= 768) {
@@ -408,10 +483,8 @@ async function playAlbumTour() {
   }
 
   let index = 0;
-  
   const playNext = () => {
     if (index >= memoriesToPlay.length) {
-      // Tour ended
       if (tourPolyline) map.removeLayer(tourPolyline);
       tourPolyline = null;
       return;
@@ -419,15 +492,13 @@ async function playAlbumTour() {
     const mem = memoriesToPlay[index];
     map.flyTo([mem.lat, mem.lng], 14, { duration: 1.5 });
     
-    // Open popup after flyTo completes roughly
     tourTimeout = setTimeout(() => {
       if (mem.marker) mem.marker.openPopup();
       index++;
-      tourTimeout = setTimeout(playNext, 4000); // stay for 4 seconds
+      tourTimeout = setTimeout(playNext, 4000);
     }, 1600);
   };
   
-  // Start tour
   tourTimeout = setTimeout(playNext, 1000);
 }
 
@@ -435,7 +506,6 @@ function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
   
-  // Mobile Sidebar Toggle
   const btnHamburger = document.getElementById('btn-hamburger');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
   const sidebar = document.querySelector('.sidebar');
@@ -452,7 +522,6 @@ function setupEventListeners() {
   btnHamburger.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
   
-  // Auth Elements
   const emailInput = document.getElementById('login-email');
   const passwordInput = document.getElementById('login-password');
   const btnLogin = document.getElementById('btn-login');
@@ -497,10 +566,25 @@ function setupEventListeners() {
   const titleInput = document.getElementById('memory-title');
   const diaryInput = document.getElementById('memory-diary');
   const albumInput = document.getElementById('memory-album');
-  const categorySelect = document.getElementById('memory-category');
   const datetimeInput = document.getElementById('memory-datetime');
   const idInput = document.getElementById('memory-id');
+  const tagInput = document.getElementById('memory-tag-input');
+  const tagsContainer = document.getElementById('tags-container');
   
+  tagsContainer.addEventListener('click', () => tagInput.focus());
+  
+  tagInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === '　' || e.key === ',') {
+      e.preventDefault();
+      const val = tagInput.value.trim().replace(',', '');
+      if (val && !currentTags.includes(val)) {
+        currentTags.push(val);
+        updateTagChips();
+      }
+      tagInput.value = '';
+    }
+  });
+
   const mapStyleSelect = document.getElementById('map-style-select');
   mapStyleSelect.addEventListener('change', (e) => {
     map.removeLayer(currentLayer);
@@ -580,7 +664,6 @@ function setupEventListeners() {
   btnCloseList.forEach(btn => btn.addEventListener('click', hideModal));
 
   btnSelectPhoto.addEventListener('click', (e) => {
-    // If clicking on image or remove button, don't open file picker
     if (e.target.tagName === 'IMG' || e.target.closest('.btn-remove-photo')) return;
     fileInput.click();
   });
@@ -590,11 +673,9 @@ function setupEventListeners() {
       loadingOverlay.classList.remove('hidden');
       try {
         const files = Array.from(e.target.files);
-        
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           const data = await processLocalPhoto(file);
-          
           currentPhotoUrls.push(data.imageUrl);
           
           if (i === 0 && idInput.value === '' && currentPhotoUrls.length === 1) {
@@ -609,7 +690,6 @@ function setupEventListeners() {
              }
           }
         }
-        
         updatePreviewGallery();
         loadingOverlay.classList.add('hidden');
       } catch (err) {
@@ -617,7 +697,6 @@ function setupEventListeners() {
         loadingOverlay.classList.add('hidden');
       }
     }
-    // reset file input so same file can be chosen again
     fileInput.value = '';
   });
   
@@ -643,15 +722,20 @@ function setupEventListeners() {
   });
 
   btnSave.addEventListener('click', async () => {
-    if (currentPhotoUrls.length === 0) {
-      alert("写真を選択してください！");
+    if (currentPhotoUrls.length === 0 && !titleInput.value) {
+      alert("写真を選択するか、タイトルを入力してください！");
       return;
+    }
+    
+    // Auto-add text in input if any
+    const leftoverTag = tagInput.value.trim().replace(',', '');
+    if (leftoverTag && !currentTags.includes(leftoverTag)) {
+      currentTags.push(leftoverTag);
     }
     
     const title = titleInput.value.trim();
     const diary = diaryInput.value.trim();
     const album = albumInput.value.trim();
-    const category = categorySelect.value;
     const datetimeStr = datetimeInput.value;
     const isEdit = idInput.value !== '';
     
@@ -662,7 +746,7 @@ function setupEventListeners() {
       title,
       diary,
       album,
-      category,
+      tags: currentTags,
       datetime: datetimeStr ? new Date(datetimeStr).toISOString() : null
     };
     
