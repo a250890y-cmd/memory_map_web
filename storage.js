@@ -1,7 +1,26 @@
 import { openDB } from 'idb';
 import { db, storage, auth } from './firebase';
-import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
+
+export async function deleteMemory(id, imageUrls = []) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Not logged in");
+  
+  for (const url of imageUrls) {
+    if (url.includes('firebasestorage')) {
+      try {
+        const imageRef = ref(storage, url);
+        await deleteObject(imageRef);
+      } catch(e) {
+        console.error("Error deleting image:", e);
+      }
+    }
+  }
+
+  const docRef = doc(db, 'users', user.uid, 'memories', id);
+  await deleteDoc(docRef);
+}
 
 const DB_NAME = 'MemoryMapDB';
 const STORE_NAME = 'memories';

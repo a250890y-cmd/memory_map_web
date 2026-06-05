@@ -18,31 +18,37 @@
     <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
 
     <!-- Left Sidebar for Albums & Filters -->
-    <aside class="sidebar glass-panel">
-      <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
+    <aside class="sidebar glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="sidebar-header">
           <h2>Memory Map</h2>
           <p>あなたの思い出</p>
         </div>
-        <button id="btn-logout" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid rgba(239,68,68,0.2);">ログアウト</button>
-      </div>
-      
-      <div class="sidebar-filters">
-        <input type="text" id="search-input" placeholder="思い出を検索..." class="filter-input" />
         
-        <div class="date-filter">
-          <label>期間絞り込み</label>
-          <input type="date" id="filter-date-from" class="filter-input small" />
-          <div style="text-align:center; color:var(--text-muted); font-size: 0.8rem; margin:2px 0;">〜</div>
-          <input type="date" id="filter-date-to" class="filter-input small" />
+        <div class="sidebar-filters">
+          <input type="text" id="search-input" placeholder="思い出を検索..." class="filter-input" />
+          
+          <div class="date-filter">
+            <label>期間絞り込み</label>
+            <input type="date" id="filter-date-from" class="filter-input small" />
+            <div style="text-align:center; color:var(--text-muted); font-size: 0.8rem; margin:2px 0;">〜</div>
+            <input type="date" id="filter-date-to" class="filter-input small" />
+          </div>
+        </div>
+
+        <div class="sidebar-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin-bottom: 0;">Albums</h3>
+            <button id="btn-play-tour" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">▶ ツアー再生</button>
+          </div>
+          <ul id="sidebar-album-list" class="album-list">
+            <li class="active" data-album="">すべて表示</li>
+          </ul>
         </div>
       </div>
-
-      <div class="sidebar-content">
-        <h3>Albums</h3>
-        <ul id="sidebar-album-list" class="album-list">
-          <li class="active" data-album="">すべて表示</li>
-        </ul>
+      
+      <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
+        <button id="btn-logout" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid rgba(239,68,68,0.2);">ログアウト</button>
       </div>
     </aside>
 
@@ -97,7 +103,7 @@
         <h2 id="modal-title">思い出を記録</h2>
         <input type="hidden" id="memory-id" value="" />
         
-        <div class="preview-gallery" id="btn-select-photo">
+        <div class="preview-gallery" id="btn-select-photo" style="position: relative;">
           <div id="preview-images-container" class="preview-images-container hidden"></div>
           <div id="preview-placeholder" class="placeholder">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -138,11 +144,24 @@
           <label for="memory-diary">日記</label>
           <textarea id="memory-diary" rows="3" placeholder="どんな思い出ですか？"></textarea>
         </div>
-        <div class="modal-actions">
-          <button id="btn-save-memory" class="btn primary">保存</button>
-          <button class="btn-close">キャンセル</button>
+        
+        <div style="display: flex; justify-content: center; margin-top: 0.5rem; margin-bottom: -0.5rem;">
+          <button id="btn-delete-memory" class="btn hidden" style="background: rgba(239,68,68,0.1); color: var(--error); font-size: 0.85rem; padding: 6px 16px;">この思い出を削除する</button>
+        </div>
+
+        <div class="modal-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button id="btn-save-memory" class="btn primary" style="flex: 1;">保存</button>
+          <button class="btn-close" style="flex: 1; background: rgba(0,0,0,0.05); color: var(--text-main); margin-top: 0;">キャンセル</button>
         </div>
       </div>
+    </div>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="fullscreen-image-modal" class="modal-overlay hidden" style="z-index: 3000; background: rgba(0,0,0,0.9);">
+      <button id="btn-close-fullscreen" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: white; cursor: pointer;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <img id="fullscreen-image" src="" style="max-width: 90vw; max-height: 90vh; object-fit: contain;" />
     </div>
 
     <!-- Loading Overlay -->

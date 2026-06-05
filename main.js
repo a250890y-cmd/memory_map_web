@@ -1,7 +1,7 @@
 import './style.css';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { saveMemory, getAllMemories, updateMemory, migrateLocalData } from './storage';
+import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
 import { auth } from './firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -33,6 +33,8 @@ let currentLayer = mapLayers.standard;
 let allMemories = [];
 let markersLayer;
 let tempMarker = null;
+let tourPolyline = null;
+let tourTimeout = null;
 
 let currentLat = 36.2048;
 let currentLng = 138.2529;
@@ -58,12 +60,21 @@ async function init() {
   
   document.addEventListener('click', (e) => {
     if (e.target && e.target.classList.contains('btn-edit-popup')) {
-      const id = e.target.getAttribute('data-id'); // String ID for Firestore
+      const id = e.target.getAttribute('data-id');
       openMemoryModal(id);
+    }
+    if (e.target && e.target.classList.contains('popup-image')) {
+      openFullscreenImage(e.target.src);
+    }
+    if (e.target && e.target.classList.contains('carousel-btn')) {
+      const dir = e.target.classList.contains('next') ? 1 : -1;
+      const gallery = e.target.parentElement.querySelector('.popup-gallery');
+      if (gallery) {
+        gallery.scrollBy({ left: dir * gallery.clientWidth, behavior: 'smooth' });
+      }
     }
   });
 
-  // Setup Auth Listener
   const loginModal = document.getElementById('login-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
   
@@ -123,51 +134,21 @@ function placeTempMarker(lat, lng) {
 
 async function loadMemories() {
   allMemories = await getAllMemories();
-  
   allMemories.forEach(m => {
-    if (m.imageUrl && !m.imageUrls) {
-      m.imageUrls = [m.imageUrl];
-    }
+    if (m.imageUrl && !m.imageUrls) m.imageUrls = [m.imageUrl];
   });
-  
   renderSidebar();
   renderMarkers();
 }
 
 function renderMarkers() {
   markersLayer.clearLayers();
-  
-  let filtered = allMemories;
-  
-  if (currentFilterAlbum) {
-    filtered = filtered.filter(m => m.album === currentFilterAlbum);
+  if (tourPolyline) {
+    map.removeLayer(tourPolyline);
+    tourPolyline = null;
   }
   
-  if (currentSearchQuery) {
-    const q = currentSearchQuery.toLowerCase();
-    filtered = filtered.filter(m => 
-      (m.title && m.title.toLowerCase().includes(q)) || 
-      (m.diary && m.diary.toLowerCase().includes(q))
-    );
-  }
-  
-  if (currentDateFrom) {
-    const fromDate = new Date(currentDateFrom).getTime();
-    filtered = filtered.filter(m => {
-      const dt = m.datetime ? new Date(m.datetime) : new Date(m.timestamp);
-      return dt.getTime() >= fromDate;
-    });
-  }
-  
-  if (currentDateTo) {
-    const toDate = new Date(currentDateTo);
-    toDate.setHours(23, 59, 59, 999);
-    const toTime = toDate.getTime();
-    filtered = filtered.filter(m => {
-      const dt = m.datetime ? new Date(m.datetime) : new Date(m.timestamp);
-      return dt.getTime() <= toTime;
-    });
-  }
+  let filtered = getFilteredMemories();
     
   filtered.forEach(memory => {
     const emoji = categoryEmojis[memory.category] || '📷';
@@ -181,8 +162,9 @@ function renderMarkers() {
     });
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
+    memory.marker = marker; // Store reference for tour
     
-    const imagesHtml = (memory.imageUrls || []).map(url => `<img src="${url}" />`).join('');
+    const imagesHtml = (memory.imageUrls || []).map(url => `<img src="${url}" class="popup-image" style="cursor: pointer;" />`).join('');
     
     let displayDate = new Date(memory.timestamp).toLocaleDateString();
     if (memory.datetime) {
@@ -190,10 +172,20 @@ function renderMarkers() {
       displayDate = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
     
+    const galleryHtml = imagesHtml ? `
+      <div class="popup-gallery-container">
+        <div class="popup-gallery">${imagesHtml}</div>
+        ${(memory.imageUrls || []).length > 1 ? `
+          <button class="carousel-btn prev">❮</button>
+          <button class="carousel-btn next">❯</button>
+        ` : ''}
+      </div>
+    ` : '';
+
     const popupContent = `
       <div style="min-width: 240px; max-width: 300px;">
-        ${imagesHtml ? `<div class="popup-gallery">${imagesHtml}</div>` : ''}
-        <div style="padding: 0 16px 16px 16px;">
+        ${galleryHtml}
+        <div style="padding: 0 16px 16px 16px; margin-top: ${imagesHtml ? '0' : '16px'};">
           <div class="popup-category">${catLabel} ${memory.album ? `| ${memory.album}` : ''}</div>
           <div class="popup-title">${memory.title || '無題の思い出'}</div>
           <div class="popup-diary">${memory.diary || ''}</div>
@@ -206,6 +198,37 @@ function renderMarkers() {
     `;
     marker.bindPopup(popupContent);
   });
+}
+
+function getFilteredMemories() {
+  let filtered = allMemories;
+  if (currentFilterAlbum) {
+    filtered = filtered.filter(m => m.album === currentFilterAlbum);
+  }
+  if (currentSearchQuery) {
+    const q = currentSearchQuery.toLowerCase();
+    filtered = filtered.filter(m => 
+      (m.title && m.title.toLowerCase().includes(q)) || 
+      (m.diary && m.diary.toLowerCase().includes(q))
+    );
+  }
+  if (currentDateFrom) {
+    const fromDate = new Date(currentDateFrom).getTime();
+    filtered = filtered.filter(m => {
+      const dt = m.datetime ? new Date(m.datetime) : new Date(m.timestamp);
+      return dt.getTime() >= fromDate;
+    });
+  }
+  if (currentDateTo) {
+    const toDate = new Date(currentDateTo);
+    toDate.setHours(23, 59, 59, 999);
+    const toTime = toDate.getTime();
+    filtered = filtered.filter(m => {
+      const dt = m.datetime ? new Date(m.datetime) : new Date(m.timestamp);
+      return dt.getTime() <= toTime;
+    });
+  }
+  return filtered;
 }
 
 function renderSidebar() {
@@ -241,6 +264,7 @@ function renderSidebar() {
 
 function setFilter(albumName) {
   currentFilterAlbum = albumName;
+  if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
   renderSidebar();
   renderMarkers();
 }
@@ -258,10 +282,27 @@ function updatePreviewGallery() {
   container.innerHTML = '';
   
   if (currentPhotoUrls.length > 0) {
-    currentPhotoUrls.forEach(url => {
+    currentPhotoUrls.forEach((url, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'preview-img-wrapper';
+      
       const img = document.createElement('img');
       img.src = url;
-      container.appendChild(img);
+      img.className = 'popup-image';
+      img.style.cursor = 'pointer';
+      
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'btn-remove-photo';
+      rmBtn.innerHTML = '✕';
+      rmBtn.onclick = (e) => {
+        e.stopPropagation();
+        currentPhotoUrls.splice(index, 1);
+        updatePreviewGallery();
+      };
+      
+      wrapper.appendChild(img);
+      wrapper.appendChild(rmBtn);
+      container.appendChild(wrapper);
     });
     container.classList.remove('hidden');
     placeholder.classList.add('hidden');
@@ -273,6 +314,7 @@ function updatePreviewGallery() {
 
 function openMemoryModal(id = null) {
   if (tempMarker) tempMarker.closePopup();
+  if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
   
   const modal = document.getElementById('memory-modal');
   const titleInput = document.getElementById('memory-title');
@@ -282,6 +324,7 @@ function openMemoryModal(id = null) {
   const datetimeInput = document.getElementById('memory-datetime');
   const idInput = document.getElementById('memory-id');
   const modalTitle = document.getElementById('modal-title');
+  const btnDelete = document.getElementById('btn-delete-memory');
   
   if (id !== null) {
     const memory = allMemories.find(m => m.id === id);
@@ -303,6 +346,7 @@ function openMemoryModal(id = null) {
       datetimeInput.value = toDatetimeLocal(memory.timestamp);
     }
     
+    btnDelete.classList.remove('hidden');
     updatePreviewGallery();
   } else {
     modalTitle.textContent = '思い出を記録';
@@ -314,10 +358,77 @@ function openMemoryModal(id = null) {
     datetimeInput.value = toDatetimeLocal(new Date());
     currentPhotoUrls = [];
     
+    btnDelete.classList.add('hidden');
     updatePreviewGallery();
   }
   
   modal.classList.remove('hidden');
+}
+
+function openFullscreenImage(src) {
+  const modal = document.getElementById('fullscreen-image-modal');
+  const img = document.getElementById('fullscreen-image');
+  img.src = src;
+  modal.classList.remove('hidden');
+}
+
+async function playAlbumTour() {
+  if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
+  
+  let memoriesToPlay = getFilteredMemories();
+  if (memoriesToPlay.length === 0) {
+    alert("表示する思い出がありません。");
+    return;
+  }
+  
+  // Sort chronologically
+  memoriesToPlay.sort((a, b) => {
+    const tA = new Date(a.datetime || a.timestamp).getTime();
+    const tB = new Date(b.datetime || b.timestamp).getTime();
+    return tA - tB;
+  });
+
+  const latlngs = memoriesToPlay.map(m => [m.lat, m.lng]);
+  
+  if (tourPolyline) map.removeLayer(tourPolyline);
+  tourPolyline = L.polyline(latlngs, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
+  
+  // Fit bounds to show whole path
+  map.fitBounds(tourPolyline.getBounds(), { padding: [50, 50] });
+  
+  // Close any open popups
+  map.closePopup();
+
+  // Mobile: hide sidebar when playing tour
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.remove('open');
+    overlay.classList.add('hidden');
+  }
+
+  let index = 0;
+  
+  const playNext = () => {
+    if (index >= memoriesToPlay.length) {
+      // Tour ended
+      if (tourPolyline) map.removeLayer(tourPolyline);
+      tourPolyline = null;
+      return;
+    }
+    const mem = memoriesToPlay[index];
+    map.flyTo([mem.lat, mem.lng], 14, { duration: 1.5 });
+    
+    // Open popup after flyTo completes roughly
+    tourTimeout = setTimeout(() => {
+      if (mem.marker) mem.marker.openPopup();
+      index++;
+      tourTimeout = setTimeout(playNext, 4000); // stay for 4 seconds
+    }, 1600);
+  };
+  
+  // Start tour
+  tourTimeout = setTimeout(playNext, 1000);
 }
 
 function setupEventListeners() {
@@ -375,13 +486,12 @@ function setupEventListeners() {
 
   btnLogin.addEventListener('click', () => handleAuth('login'));
   btnSignup.addEventListener('click', () => handleAuth('signup'));
-  btnLogout.addEventListener('click', () => {
-    signOut(auth);
-  });
+  btnLogout.addEventListener('click', () => signOut(auth));
 
   const fileInput = document.getElementById('file-input');
   const btnSelectPhoto = document.getElementById('btn-select-photo');
   const btnSave = document.getElementById('btn-save-memory');
+  const btnDeleteMemory = document.getElementById('btn-delete-memory');
   const btnCloseList = document.querySelectorAll('.btn-close');
 
   const titleInput = document.getElementById('memory-title');
@@ -417,16 +527,24 @@ function setupEventListeners() {
 
   const btnCurrentLocation = document.getElementById('btn-current-location');
   const btnPinCurrent = document.getElementById('btn-pin-current');
+  const btnPlayTour = document.getElementById('btn-play-tour');
+  const fullscreenModal = document.getElementById('fullscreen-image-modal');
+  const btnCloseFullscreen = document.getElementById('btn-close-fullscreen');
   
+  btnPlayTour.addEventListener('click', playAlbumTour);
+  
+  btnCloseFullscreen.addEventListener('click', () => fullscreenModal.classList.add('hidden'));
+  fullscreenModal.addEventListener('click', (e) => {
+    if (e.target === fullscreenModal) fullscreenModal.classList.add('hidden');
+  });
+
   btnCurrentLocation.addEventListener('click', () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(position => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         map.flyTo([lat, lng], 15);
-      }, err => {
-        alert("現在地の取得に失敗しました。設定を確認してください。");
-      });
+      }, err => alert("現在地の取得に失敗しました。設定を確認してください。"));
     } else {
       alert("お使いのブラウザは現在地取得に対応していません。");
     }
@@ -461,7 +579,11 @@ function setupEventListeners() {
 
   btnCloseList.forEach(btn => btn.addEventListener('click', hideModal));
 
-  btnSelectPhoto.addEventListener('click', () => fileInput.click());
+  btnSelectPhoto.addEventListener('click', (e) => {
+    // If clicking on image or remove button, don't open file picker
+    if (e.target.tagName === 'IMG' || e.target.closest('.btn-remove-photo')) return;
+    fileInput.click();
+  });
 
   fileInput.addEventListener('change', async (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -475,7 +597,7 @@ function setupEventListeners() {
           
           currentPhotoUrls.push(data.imageUrl);
           
-          if (i === 0 && idInput.value === '') {
+          if (i === 0 && idInput.value === '' && currentPhotoUrls.length === 1) {
              if (data.lat !== null && data.lng !== null) {
                currentLat = data.lat;
                currentLng = data.lng;
@@ -495,6 +617,29 @@ function setupEventListeners() {
         loadingOverlay.classList.add('hidden');
       }
     }
+    // reset file input so same file can be chosen again
+    fileInput.value = '';
+  });
+  
+  btnDeleteMemory.addEventListener('click', async () => {
+    if (!confirm("本当にこの思い出を削除しますか？")) return;
+    const id = idInput.value;
+    if (!id) return;
+    
+    loadingOverlay.classList.remove('hidden');
+    try {
+      const memory = allMemories.find(m => m.id === id);
+      await deleteMemory(id, memory ? memory.imageUrls : []);
+      allMemories = allMemories.filter(m => m.id !== id);
+      
+      renderSidebar();
+      renderMarkers();
+      hideModal();
+    } catch(err) {
+      console.error(err);
+      alert("削除に失敗しました");
+    }
+    loadingOverlay.classList.add('hidden');
   });
 
   btnSave.addEventListener('click', async () => {
