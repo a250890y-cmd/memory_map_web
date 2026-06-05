@@ -395,11 +395,11 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Leaflet Overrides for Glass Theme */
-.leaflet-container {
+/* MapLibre Overrides for Glass Theme */
+.maplibregl-canvas-container {
   font-family: 'Inter', sans-serif !important;
 }
-.leaflet-popup-content-wrapper {
+.maplibregl-popup-content {
   background: var(--bg-glass) !important;
   color: var(--text-main) !important;
   backdrop-filter: blur(20px);
@@ -407,19 +407,13 @@ body {
   border: 1px solid var(--border-glass);
   box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
   border-radius: 16px !important;
-  padding: 0 !important;
-  overflow: hidden;
-}
-.leaflet-popup-tip {
-  background: var(--bg-glass) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
-}
-.leaflet-popup-content {
+  padding: 16px !important;
   margin: 0 !important;
-  padding: 16px;
   min-width: 240px;
+}
+.maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.7) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.7) !important;
 }
 .popup-gallery {
   display: flex;
