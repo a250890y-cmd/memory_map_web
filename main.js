@@ -47,7 +47,7 @@ let currentTags = [];
 
 async function init() {
   const japanCenter = [36.2048, 138.2529];
-  map = L.map('map', { zoomControl: false }).setView(japanCenter, 5);
+  map = L.map('map', { zoomControl: false, worldCopyJump: true }).setView(japanCenter, 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   currentLayer.addTo(map);
