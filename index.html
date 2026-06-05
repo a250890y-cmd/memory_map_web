@@ -11,9 +11,12 @@
   <body>
     <!-- Left Sidebar for Albums & Filters -->
     <aside class="sidebar glass-panel">
-      <div class="sidebar-header">
-        <h2>Memory Map</h2>
-        <p>あなたの思い出</p>
+      <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h2>Memory Map</h2>
+          <p>あなたの思い出</p>
+        </div>
+        <button id="btn-logout" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid rgba(239,68,68,0.2);">ログアウト</button>
       </div>
       
       <div class="sidebar-filters">
@@ -56,6 +59,28 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         <span style="margin-left: 6px; font-weight: 600; font-size: 0.95rem;">ここで記録</span>
       </button>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay">
+      <div class="modal-content glass-panel" style="text-align: center;">
+        <h2 style="margin-bottom: 0.5rem; color: var(--primary-color);">Memory Mapへようこそ</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">クラウド同期を有効にするためにログインしてください</p>
+        
+        <div class="input-group">
+          <input type="email" id="login-email" placeholder="メールアドレス" />
+        </div>
+        <div class="input-group">
+          <input type="password" id="login-password" placeholder="パスワード" />
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button id="btn-login" class="btn primary">ログイン</button>
+          <button id="btn-signup" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-main);">新規登録</button>
+        </div>
+        
+        <p id="login-error" style="color: var(--error); font-size: 0.85rem; margin-top: 1rem; display: none;"></p>
+      </div>
     </div>
 
     <!-- Memory Input Modal -->

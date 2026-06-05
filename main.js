@@ -1,10 +1,11 @@
 import './style.css';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { saveMemory, getAllMemories, updateMemory } from './storage';
+import { saveMemory, getAllMemories, updateMemory, migrateLocalData } from './storage';
 import { processLocalPhoto } from './local_photos';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
-// Fix leaflet icon paths in Vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
@@ -22,15 +23,9 @@ const categoryLabels = {
 };
 
 const mapLayers = {
-  standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }),
-  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; Esri'
-  }),
-  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; CARTO'
-  })
+  standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' })
 };
 
 let map;
@@ -55,19 +50,39 @@ async function init() {
   currentLayer.addTo(map);
   markersLayer = L.layerGroup().addTo(map);
 
-  await loadMemories();
   setupEventListeners();
 
-  // Map Click Event
   map.on('click', (e) => {
     placeTempMarker(e.latlng.lat, e.latlng.lng);
   });
   
-  // Delegate edit button click in popups
   document.addEventListener('click', (e) => {
     if (e.target && e.target.classList.contains('btn-edit-popup')) {
-      const id = parseInt(e.target.getAttribute('data-id'), 10);
+      const id = e.target.getAttribute('data-id'); // String ID for Firestore
       openMemoryModal(id);
+    }
+  });
+
+  // Setup Auth Listener
+  const loginModal = document.getElementById('login-modal');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      loginModal.classList.add('hidden');
+      loadingOverlay.classList.remove('hidden');
+      try {
+        await migrateLocalData();
+        await loadMemories();
+      } catch (e) {
+        console.error("Error loading data:", e);
+      }
+      loadingOverlay.classList.add('hidden');
+    } else {
+      loginModal.classList.remove('hidden');
+      allMemories = [];
+      renderSidebar();
+      renderMarkers();
     }
   });
 }
@@ -109,7 +124,6 @@ function placeTempMarker(lat, lng) {
 async function loadMemories() {
   allMemories = await getAllMemories();
   
-  // Migration for old data (imageUrl -> imageUrls)
   allMemories.forEach(m => {
     if (m.imageUrl && !m.imageUrls) {
       m.imageUrls = [m.imageUrl];
@@ -125,12 +139,10 @@ function renderMarkers() {
   
   let filtered = allMemories;
   
-  // Filter by Album
   if (currentFilterAlbum) {
     filtered = filtered.filter(m => m.album === currentFilterAlbum);
   }
   
-  // Filter by Search Query
   if (currentSearchQuery) {
     const q = currentSearchQuery.toLowerCase();
     filtered = filtered.filter(m => 
@@ -139,7 +151,6 @@ function renderMarkers() {
     );
   }
   
-  // Filter by Date From
   if (currentDateFrom) {
     const fromDate = new Date(currentDateFrom).getTime();
     filtered = filtered.filter(m => {
@@ -148,7 +159,6 @@ function renderMarkers() {
     });
   }
   
-  // Filter by Date To
   if (currentDateTo) {
     const toDate = new Date(currentDateTo);
     toDate.setHours(23, 59, 59, 999);
@@ -172,10 +182,8 @@ function renderMarkers() {
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
     
-    // Build Gallery HTML
     const imagesHtml = (memory.imageUrls || []).map(url => `<img src="${url}" />`).join('');
     
-    // Format Date
     let displayDate = new Date(memory.timestamp).toLocaleDateString();
     if (memory.datetime) {
       const dt = new Date(memory.datetime);
@@ -205,7 +213,6 @@ function renderSidebar() {
   const listEl = document.getElementById('sidebar-album-list');
   const dataList = document.getElementById('album-datalist');
   
-  // Sidebar List
   listEl.innerHTML = '';
   
   const allLi = document.createElement('li');
@@ -224,7 +231,6 @@ function renderSidebar() {
     listEl.appendChild(li);
   });
   
-  // Datalist for input autocomplete
   dataList.innerHTML = '';
   albums.forEach(album => {
     const opt = document.createElement('option');
@@ -239,7 +245,6 @@ function setFilter(albumName) {
   renderMarkers();
 }
 
-// Convert Date to YYYY-MM-DDThh:mm format for datetime-local
 function toDatetimeLocal(date) {
   const d = new Date(date);
   const pad = n => n.toString().padStart(2, '0');
@@ -279,7 +284,6 @@ function openMemoryModal(id = null) {
   const modalTitle = document.getElementById('modal-title');
   
   if (id !== null) {
-    // Edit mode
     const memory = allMemories.find(m => m.id === id);
     if (!memory) return;
     
@@ -301,7 +305,6 @@ function openMemoryModal(id = null) {
     
     updatePreviewGallery();
   } else {
-    // Create mode
     modalTitle.textContent = '思い出を記録';
     idInput.value = '';
     titleInput.value = '';
@@ -321,6 +324,44 @@ function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
   
+  // Auth Elements
+  const emailInput = document.getElementById('login-email');
+  const passwordInput = document.getElementById('login-password');
+  const btnLogin = document.getElementById('btn-login');
+  const btnSignup = document.getElementById('btn-signup');
+  const btnLogout = document.getElementById('btn-logout');
+  const loginError = document.getElementById('login-error');
+
+  const handleAuth = async (action) => {
+    const email = emailInput.value.trim();
+    const pwd = passwordInput.value.trim();
+    if (!email || !pwd) {
+      loginError.textContent = "メールアドレスとパスワードを入力してください";
+      loginError.style.display = 'block';
+      return;
+    }
+    loginError.style.display = 'none';
+    loadingOverlay.classList.remove('hidden');
+    try {
+      if (action === 'login') {
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, pwd);
+      }
+      loadingOverlay.classList.add('hidden');
+    } catch (e) {
+      loadingOverlay.classList.add('hidden');
+      loginError.textContent = "エラー: " + e.message;
+      loginError.style.display = 'block';
+    }
+  };
+
+  btnLogin.addEventListener('click', () => handleAuth('login'));
+  btnSignup.addEventListener('click', () => handleAuth('signup'));
+  btnLogout.addEventListener('click', () => {
+    signOut(auth);
+  });
+
   const fileInput = document.getElementById('file-input');
   const btnSelectPhoto = document.getElementById('btn-select-photo');
   const btnSave = document.getElementById('btn-save-memory');
@@ -333,7 +374,6 @@ function setupEventListeners() {
   const datetimeInput = document.getElementById('memory-datetime');
   const idInput = document.getElementById('memory-id');
   
-  // Map Style Select
   const mapStyleSelect = document.getElementById('map-style-select');
   mapStyleSelect.addEventListener('change', (e) => {
     map.removeLayer(currentLayer);
@@ -341,7 +381,6 @@ function setupEventListeners() {
     currentLayer.addTo(map);
   });
   
-  // Search & Filters
   const searchInput = document.getElementById('search-input');
   const dateFrom = document.getElementById('filter-date-from');
   const dateTo = document.getElementById('filter-date-to');
@@ -359,7 +398,6 @@ function setupEventListeners() {
     renderMarkers();
   });
 
-  // Current Location Buttons
   const btnCurrentLocation = document.getElementById('btn-current-location');
   const btnPinCurrent = document.getElementById('btn-pin-current');
   
@@ -385,7 +423,7 @@ function setupEventListeners() {
         const lng = position.coords.longitude;
         map.flyTo([lat, lng], 15);
         placeTempMarker(lat, lng);
-        setTimeout(() => openMemoryModal(), 600); // Wait for flyTo
+        setTimeout(() => openMemoryModal(), 600);
         loadingOverlay.classList.add('hidden');
       }, err => {
         loadingOverlay.classList.add('hidden');
@@ -420,7 +458,6 @@ function setupEventListeners() {
           
           currentPhotoUrls.push(data.imageUrl);
           
-          // Use EXIF from the first photo if available and we are creating a new memory
           if (i === 0 && idInput.value === '') {
              if (data.lat !== null && data.lng !== null) {
                currentLat = data.lat;
@@ -467,26 +504,33 @@ function setupEventListeners() {
       datetime: datetimeStr ? new Date(datetimeStr).toISOString() : null
     };
     
-    if (isEdit) {
-      memory.id = parseInt(idInput.value, 10);
-      const existing = allMemories.find(m => m.id === memory.id);
-      memory.timestamp = existing ? existing.timestamp : new Date().toISOString();
-      await updateMemory(memory);
+    loadingOverlay.classList.remove('hidden');
+    try {
+      if (isEdit) {
+        memory.id = idInput.value;
+        const existing = allMemories.find(m => m.id === memory.id);
+        memory.timestamp = existing ? existing.timestamp : new Date().toISOString();
+        await updateMemory(memory);
+        
+        const index = allMemories.findIndex(m => m.id === memory.id);
+        if (index !== -1) allMemories[index] = memory;
+      } else {
+        const id = await saveMemory(memory);
+        memory.id = id;
+        memory.timestamp = new Date().toISOString();
+        allMemories.push(memory);
+      }
       
-      const index = allMemories.findIndex(m => m.id === memory.id);
-      if (index !== -1) allMemories[index] = memory;
-    } else {
-      const id = await saveMemory(memory);
-      memory.id = id;
-      memory.timestamp = new Date().toISOString();
-      allMemories.push(memory);
+      renderSidebar();
+      renderMarkers();
+      
+      map.flyTo([memory.lat, memory.lng], 13);
+      hideModal();
+    } catch (err) {
+      console.error(err);
+      alert("保存に失敗しました: " + err.message);
     }
-    
-    renderSidebar();
-    renderMarkers();
-    
-    map.flyTo([memory.lat, memory.lng], 13);
-    hideModal();
+    loadingOverlay.classList.add('hidden');
   });
 }
 
