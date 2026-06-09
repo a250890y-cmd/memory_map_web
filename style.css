@@ -134,8 +134,8 @@ body {
 /* Map Controls (Top Right) */
 .map-controls {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 4rem;
+  right: 10px;
   z-index: 1000;
   padding: 0.5rem 1rem;
   border-radius: 12px;
@@ -154,8 +154,8 @@ body {
 /* Bottom Controls */
 .bottom-controls {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: 6.5rem;
+  right: 10px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
