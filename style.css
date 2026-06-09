@@ -24,8 +24,11 @@ body {
 
 /* Map Container */
 #map {
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1; 
 }
 
@@ -134,8 +137,8 @@ body {
 /* Map Controls (Top Right) */
 .map-controls {
   position: absolute;
-  top: 4rem;
-  right: 10px;
+  top: 4.5rem;
+  right: 15px;
   z-index: 1000;
   padding: 0.5rem 1rem;
   border-radius: 12px;
@@ -154,13 +157,23 @@ body {
 /* Bottom Controls */
 .bottom-controls {
   position: fixed;
-  bottom: 6.5rem;
-  right: 10px;
+  bottom: 6rem;
+  right: 15px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   align-items: flex-end;
+}
+.center-bottom-control {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 90%;
+  max-width: 320px;
+  padding-bottom: 2rem;
 }
 .control-btn {
   border: none;
@@ -183,13 +196,24 @@ body {
   background: rgba(255,255,255,0.9);
 }
 #btn-pin-current {
-  padding: 0.75rem 1.25rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
   background: var(--primary-color);
   color: white;
-  box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+  box-shadow: 0 6px 20px rgba(59,130,246,0.4);
 }
 #btn-pin-current:hover {
   background: var(--primary-hover);
+}
+
+/* Leaflet Safe Area Tweaks */
+.leaflet-top.leaflet-right {
+  padding-top: env(safe-area-inset-top, 10px);
+  padding-right: env(safe-area-inset-right, 10px);
+}
+.leaflet-bottom.leaflet-right {
+  padding-bottom: env(safe-area-inset-bottom, 10px);
+  padding-right: env(safe-area-inset-right, 10px);
 }
 
 /* Modals */
