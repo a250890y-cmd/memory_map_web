@@ -4,6 +4,8 @@ import L from './leaflet-setup';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
+import 'leaflet-control-geocoder';
 import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
 import { auth } from './firebase';
@@ -23,7 +25,7 @@ const categoryLabels = {
 
 const mapLayers = {
   standard: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '&copy; Google' }),
-  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
+  satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '&copy; Google' }),
   dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' })
 };
 
@@ -49,6 +51,17 @@ async function init() {
   const japanCenter = [36.2048, 138.2529];
   map = L.map('map', { zoomControl: false, worldCopyJump: true }).setView(japanCenter, 5);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  L.Control.geocoder({
+    position: 'topright',
+    placeholder: '場所を検索...',
+    defaultMarkGeocode: false
+  })
+  .on('markgeocode', function(e) {
+    const latlng = e.geocode.center;
+    map.flyTo(latlng, 13);
+  })
+  .addTo(map);
 
   currentLayer.addTo(map);
   
@@ -332,6 +345,7 @@ function toDatetimeLocal(date) {
 function updatePreviewGallery() {
   const container = document.getElementById('preview-images-container');
   const placeholder = document.getElementById('preview-placeholder');
+  const btnAddMore = document.getElementById('btn-add-more-photos');
   
   container.innerHTML = '';
   
@@ -360,9 +374,14 @@ function updatePreviewGallery() {
     });
     container.classList.remove('hidden');
     placeholder.classList.add('hidden');
+    if (btnAddMore) {
+      btnAddMore.classList.remove('hidden');
+      btnAddMore.style.display = 'inline-flex';
+    }
   } else {
     container.classList.add('hidden');
     placeholder.classList.remove('hidden');
+    if (btnAddMore) btnAddMore.classList.add('hidden');
   }
 }
 
@@ -562,6 +581,13 @@ function setupEventListeners() {
   const btnSave = document.getElementById('btn-save-memory');
   const btnDeleteMemory = document.getElementById('btn-delete-memory');
   const btnCloseList = document.querySelectorAll('.btn-close');
+  const btnAddMorePhotos = document.getElementById('btn-add-more-photos');
+
+  if (btnAddMorePhotos) {
+    btnAddMorePhotos.addEventListener('click', () => {
+      fileInput.click();
+    });
+  }
 
   const titleInput = document.getElementById('memory-title');
   const diaryInput = document.getElementById('memory-diary');

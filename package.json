@@ -17,6 +17,7 @@
     "heic2any": "^0.0.4",
     "idb": "^8.0.3",
     "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^3.3.1",
     "leaflet.markercluster": "^1.5.3"
   }
 }

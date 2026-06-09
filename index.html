@@ -108,12 +108,15 @@
         <h2 id="modal-title">思い出を記録</h2>
         <input type="hidden" id="memory-id" value="" />
         
-        <div class="preview-gallery" id="btn-select-photo" style="position: relative;">
+        <div class="preview-gallery" id="btn-select-photo" style="position: relative; margin-bottom: 0.5rem;">
           <div id="preview-images-container" class="preview-images-container hidden"></div>
           <div id="preview-placeholder" class="placeholder">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <p>タップして写真を選択（複数可）</p>
           </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 1rem;">
+          <button id="btn-add-more-photos" type="button" class="btn hidden" style="display: inline-flex; width: auto; padding: 6px 12px; font-size: 0.8rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">+ 写真を追加</button>
         </div>
 
         <div class="input-group">
