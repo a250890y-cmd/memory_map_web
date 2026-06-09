@@ -22,7 +22,7 @@ const categoryLabels = {
 };
 
 const mapLayers = {
-  standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }),
+  standard: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: '&copy; Google' }),
   satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' }),
   dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' })
 };
@@ -492,6 +492,7 @@ async function playAlbumTour() {
     const mem = memoriesToPlay[index];
     
     markersLayer.zoomToShowLayer(mem.marker, () => {
+      map.panTo(mem.marker.getLatLng(), { animate: true, duration: 0.5 });
       mem.marker.openPopup();
       index++;
       tourTimeout = setTimeout(playNext, 4000);
