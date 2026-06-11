@@ -146,8 +146,8 @@ body {
 /* Map Controls (Top Right) */
 .map-controls {
   position: absolute;
-  top: 4.5rem;
-  right: 15px;
+  top: calc(env(safe-area-inset-top, 0px) + 4.5rem);
+  right: calc(env(safe-area-inset-right, 0px) + 15px);
   z-index: 1000;
   padding: 0.5rem 1rem;
   border-radius: 12px;
@@ -217,12 +217,12 @@ body {
 
 /* Leaflet Safe Area Tweaks */
 .leaflet-top.leaflet-right {
-  padding-top: env(safe-area-inset-top, 10px);
-  padding-right: env(safe-area-inset-right, 10px);
+  margin-top: env(safe-area-inset-top, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
 }
 .leaflet-bottom.leaflet-right {
-  padding-bottom: env(safe-area-inset-bottom, 10px);
-  padding-right: env(safe-area-inset-right, 10px);
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
 }
 
 /* Modals */
@@ -521,8 +521,8 @@ body {
 /* Mobile Sidebar & Hamburger */
 .btn-hamburger {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  left: calc(env(safe-area-inset-left, 0px) + 1rem);
   z-index: 2000;
   border: none;
   border-radius: 12px;
