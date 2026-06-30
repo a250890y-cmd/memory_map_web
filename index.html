@@ -55,6 +55,7 @@
       </div>
       
       <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
+        <button id="btn-about" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: var(--text-main); margin-bottom: 0.5rem;">このアプリについて (About)</button>
         <button id="btn-logout" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid rgba(239,68,68,0.2);">ログアウト</button>
       </div>
     </aside>
@@ -182,6 +183,46 @@
 
     <!-- Hidden file input for local photo(s) -->
     <input type="file" id="file-input" accept="image/*" multiple class="hidden" />
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal-overlay hidden" style="z-index: 2500;">
+      <div class="modal-content glass-panel scrollable" style="text-align: center;">
+        <h2 style="color: var(--primary-color);">About</h2>
+        
+        <h3 style="margin-top: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem; text-align: left;">プロジェクト概要</h3>
+        <p style="font-size: 0.9rem; text-align: left; color: var(--text-muted); line-height: 1.5;">
+          Memory Mapは、訪れた場所の写真や日記を地図上に記録し、視覚的に振り返ることができる空間的な日記アプリです。
+        </p>
+
+        <h3 style="margin-top: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem; text-align: left;">グループメンバー</h3>
+        
+        <!-- Member 1 -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
+          <img src="https://via.placeholder.com/80" alt="Member 1" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+          <div>
+            <h4 style="margin: 0; font-size: 1rem;">[メンバーの名前1]</h4>
+            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [担当内容] / 役職: [オリジナルの役職]</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [ここに一言紹介文が入ります]</p>
+          </div>
+        </div>
+
+        <!-- Member 2 -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
+          <img src="https://via.placeholder.com/80" alt="Member 2" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+          <div>
+            <h4 style="margin: 0; font-size: 1rem;">[メンバーの名前2]</h4>
+            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [担当内容] / 役職: [オリジナルの役職]</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [ここに一言紹介文が入ります]</p>
+          </div>
+        </div>
+
+        <!-- Add more members by copying the div above -->
+
+        <div style="margin-top: 2rem;">
+          <button id="btn-close-about" class="btn primary" style="width: 100%;">閉じる</button>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="/main.js"></script>
   </body>
