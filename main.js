@@ -160,6 +160,10 @@ function renderMarkers() {
     map.removeLayer(tourPolyline);
     tourPolyline = null;
   }
+  if (window.routeLayers && window.routeLayers.length > 0) {
+    window.routeLayers.forEach(layer => map.removeLayer(layer));
+  }
+  window.routeLayers = [];
   
   let filtered = getFilteredMemories();
     
@@ -211,6 +215,27 @@ function renderMarkers() {
     `;
     marker.bindPopup(popupContent);
   });
+  
+  if (currentFilterAlbum && filtered.length >= 2) {
+    const sortedForRoute = [...filtered].sort((a, b) => {
+      const tA = new Date(a.datetime || a.timestamp).getTime();
+      const tB = new Date(b.datetime || b.timestamp).getTime();
+      return tA - tB;
+    });
+    
+    for (let i = 1; i < sortedForRoute.length; i++) {
+      const prev = sortedForRoute[i - 1];
+      const curr = sortedForRoute[i];
+      const mode = curr.transportMode || 'none';
+      if (mode === 'none') continue;
+      
+      const routeLine = L.polyline([[prev.lat, prev.lng], [curr.lat, curr.lng]], {
+        className: `route-line route-${mode}`
+      }).addTo(map);
+      
+      window.routeLayers.push(routeLine);
+    }
+  }
 }
 
 function getFilteredMemories() {
@@ -408,6 +433,7 @@ function openMemoryModal(id = null) {
   const modalTitle = document.getElementById('modal-title');
   const btnDelete = document.getElementById('btn-delete-memory');
   const tagInput = document.getElementById('memory-tag-input');
+  const transportInput = document.getElementById('memory-transport');
   
   tagInput.value = '';
 
@@ -424,6 +450,7 @@ function openMemoryModal(id = null) {
     currentPhotoUrls = [...(memory.imageUrls || [])];
     currentLat = memory.lat;
     currentLng = memory.lng;
+    transportInput.value = memory.transportMode || 'none';
     
     if (memory.datetime) {
       datetimeInput.value = toDatetimeLocal(memory.datetime);
@@ -441,6 +468,7 @@ function openMemoryModal(id = null) {
     currentTags = [];
     datetimeInput.value = toDatetimeLocal(new Date());
     currentPhotoUrls = [];
+    transportInput.value = 'none';
     
     btnDelete.classList.add('hidden');
   }
@@ -742,6 +770,7 @@ function setupEventListeners() {
     const diary = diaryInput.value.trim();
     const album = albumInput.value.trim();
     const datetimeStr = datetimeInput.value;
+    const transportMode = document.getElementById('memory-transport').value;
     const isEdit = idInput.value !== '';
     
     const memory = {
@@ -752,6 +781,7 @@ function setupEventListeners() {
       diary,
       album,
       tags: currentTags,
+      transportMode,
       datetime: datetimeStr ? new Date(datetimeStr).toISOString() : null
     };
     
