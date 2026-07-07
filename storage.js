@@ -1,12 +1,8 @@
-import { openDB } from 'idb';
-import { db, storage, auth } from './firebase';
+import { db, storage } from './firebase';
 import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export async function deleteMemory(id, imageUrls = []) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("Not logged in");
-  
   for (const url of imageUrls) {
     if (url.includes('firebasestorage')) {
       try {
@@ -18,29 +14,11 @@ export async function deleteMemory(id, imageUrls = []) {
     }
   }
 
-  const docRef = doc(db, 'users', user.uid, 'memories', id);
+  const docRef = doc(db, 'public_memories', id);
   await deleteDoc(docRef);
 }
 
-const DB_NAME = 'MemoryMapDB';
-const STORE_NAME = 'memories';
-const DB_VERSION = 1;
-
-export async function initDB() {
-  return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-        store.createIndex('timestamp', 'timestamp');
-      }
-    },
-  });
-}
-
 async function uploadImages(imageUrls) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("Not logged in");
-  
   const uploadedUrls = [];
   for (let i = 0; i < imageUrls.length; i++) {
     const dataUrl = imageUrls[i];
@@ -49,8 +27,7 @@ async function uploadImages(imageUrls) {
       continue;
     }
     
-    // Extract base64 part just in case, but uploadString handles data_url
-    const fileName = `images/${user.uid}/${Date.now()}_${i}.jpg`;
+    const fileName = `public_images/${Date.now()}_${i}.jpg`;
     const imageRef = ref(storage, fileName);
     await uploadString(imageRef, dataUrl, 'data_url');
     const downloadUrl = await getDownloadURL(imageRef);
@@ -60,9 +37,6 @@ async function uploadImages(imageUrls) {
 }
 
 export async function saveMemory(memory) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("Not logged in");
-
   const urls = await uploadImages(memory.imageUrls);
   
   const docData = {
@@ -72,16 +46,13 @@ export async function saveMemory(memory) {
   };
   delete docData.id; 
   
-  const memoriesCol = collection(db, 'users', user.uid, 'memories');
+  const memoriesCol = collection(db, 'public_memories');
   const docRef = await addDoc(memoriesCol, docData);
   return docRef.id;
 }
 
 export async function getAllMemories() {
-  const user = auth.currentUser;
-  if (!user) return [];
-  
-  const memoriesCol = collection(db, 'users', user.uid, 'memories');
+  const memoriesCol = collection(db, 'public_memories');
   const q = query(memoriesCol, orderBy('timestamp', 'asc'));
   const snapshot = await getDocs(q);
   
@@ -92,9 +63,6 @@ export async function getAllMemories() {
 }
 
 export async function updateMemory(memory) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("Not logged in");
-
   const urls = await uploadImages(memory.imageUrls);
   
   const docData = {
@@ -104,28 +72,6 @@ export async function updateMemory(memory) {
   const memoryId = docData.id;
   delete docData.id;
   
-  const docRef = doc(db, 'users', user.uid, 'memories', memoryId);
+  const docRef = doc(db, 'public_memories', memoryId);
   await updateDoc(docRef, docData);
-}
-
-export async function migrateLocalData() {
-  const user = auth.currentUser;
-  if (!user) return;
-  
-  try {
-    const localDb = await initDB();
-    const localMemories = await localDb.getAll(STORE_NAME);
-    if (!localMemories || localMemories.length === 0) return;
-    
-    console.log("Found local memories to migrate: ", localMemories.length);
-    for (const mem of localMemories) {
-      if (mem.imageUrl && !mem.imageUrls) mem.imageUrls = [mem.imageUrl];
-      if (!mem.imageUrls) mem.imageUrls = [];
-      await saveMemory(mem);
-      await localDb.delete(STORE_NAME, mem.id);
-    }
-    console.log("Migration complete!");
-  } catch (err) {
-    console.error("Migration error: ", err);
-  }
 }

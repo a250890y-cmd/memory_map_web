@@ -56,8 +56,6 @@
       
       <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
         <button id="btn-about" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: var(--text-main); margin-bottom: 0.5rem;">このアプリについて (About)</button>
-        <button id="btn-logout" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid rgba(239,68,68,0.2);">ログアウト</button>
-        <button id="btn-migrate-public" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(59,130,246,0.1); color: var(--primary-color); border: 1px solid rgba(59,130,246,0.2); margin-top: 0.5rem;">データを公開用に移行</button>
       </div>
     </aside>
 
@@ -88,27 +86,7 @@
       </button>
     </div>
 
-    <!-- Login Modal -->
-    <div id="login-modal" class="modal-overlay">
-      <div class="modal-content glass-panel" style="text-align: center;">
-        <h2 style="margin-bottom: 0.5rem; color: var(--primary-color);">Memory Mapへようこそ</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">クラウド同期を有効にするためにログインしてください</p>
-        
-        <div class="input-group">
-          <input type="email" id="login-email" placeholder="メールアドレス" />
-        </div>
-        <div class="input-group">
-          <input type="password" id="login-password" placeholder="パスワード" />
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-          <button id="btn-login" class="btn primary">ログイン</button>
-          <button id="btn-signup" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-main);">新規登録</button>
-        </div>
-        
-        <p id="login-error" style="color: var(--error); font-size: 0.85rem; margin-top: 1rem; display: none;"></p>
-      </div>
-    </div>
+
 
     <!-- Memory Input Modal -->
     <div id="memory-modal" class="modal-overlay hidden">

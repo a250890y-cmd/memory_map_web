@@ -6,11 +6,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
-import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
+import { saveMemory, getAllMemories, updateMemory, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
-import { auth, db } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -97,27 +94,15 @@ async function init() {
     }
   });
 
-  const loginModal = document.getElementById('login-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
   
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      loginModal.classList.add('hidden');
-      loadingOverlay.classList.remove('hidden');
-      try {
-        await migrateLocalData();
-        await loadMemories();
-      } catch (e) {
-        console.error("Error loading data:", e);
-      }
-      loadingOverlay.classList.add('hidden');
-    } else {
-      loginModal.classList.remove('hidden');
-      allMemories = [];
-      renderSidebar();
-      renderMarkers();
-    }
-  });
+  loadingOverlay.classList.remove('hidden');
+  try {
+    await loadMemories();
+  } catch (e) {
+    console.error("Error loading data:", e);
+  }
+  loadingOverlay.classList.add('hidden');
 }
 
 function placeTempMarker(lat, lng) {
@@ -542,40 +527,7 @@ function setupEventListeners() {
   btnHamburger.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
   
-  const emailInput = document.getElementById('login-email');
-  const passwordInput = document.getElementById('login-password');
-  const btnLogin = document.getElementById('btn-login');
-  const btnSignup = document.getElementById('btn-signup');
-  const btnLogout = document.getElementById('btn-logout');
-  const loginError = document.getElementById('login-error');
 
-  const handleAuth = async (action) => {
-    const email = emailInput.value.trim();
-    const pwd = passwordInput.value.trim();
-    if (!email || !pwd) {
-      loginError.textContent = "メールアドレスとパスワードを入力してください";
-      loginError.style.display = 'block';
-      return;
-    }
-    loginError.style.display = 'none';
-    loadingOverlay.classList.remove('hidden');
-    try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, pwd);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, pwd);
-      }
-      loadingOverlay.classList.add('hidden');
-    } catch (e) {
-      loadingOverlay.classList.add('hidden');
-      loginError.textContent = "エラー: " + e.message;
-      loginError.style.display = 'block';
-    }
-  };
-
-  btnLogin.addEventListener('click', () => handleAuth('login'));
-  btnSignup.addEventListener('click', () => handleAuth('signup'));
-  btnLogout.addEventListener('click', () => signOut(auth));
 
   const btnAbout = document.getElementById('btn-about');
   const aboutModal = document.getElementById('about-modal');
@@ -600,33 +552,7 @@ function setupEventListeners() {
     });
   }
 
-  const btnMigratePublic = document.getElementById('btn-migrate-public');
-  if (btnMigratePublic) {
-    btnMigratePublic.addEventListener('click', async () => {
-      if (!confirm("現在のデータを公開用に移行しますか？")) return;
-      loadingOverlay.classList.remove('hidden');
-      try {
-        const user = auth.currentUser;
-        if (!user) { alert("ログインしてください"); return; }
-        
-        const oldCol = collection(db, 'users', user.uid, 'memories');
-        const newCol = collection(db, 'public_memories');
-        
-        const snapshot = await getDocs(oldCol);
-        let count = 0;
-        for (const doc of snapshot.docs) {
-          const data = doc.data();
-          await addDoc(newCol, data);
-          count++;
-        }
-        alert(`移行完了しました！ (${count}件の思い出)`);
-      } catch (e) {
-        console.error(e);
-        alert("エラーが発生しました: " + e.message);
-      }
-      loadingOverlay.classList.add('hidden');
-    });
-  }
+
 
   const fileInput = document.getElementById('file-input');
   const btnSelectPhoto = document.getElementById('btn-select-photo');
