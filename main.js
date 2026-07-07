@@ -8,8 +8,9 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import { saveMemory, getAllMemories, updateMemory, migrateLocalData, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -596,6 +597,34 @@ function setupEventListeners() {
       if (e.target === aboutModal) {
         aboutModal.classList.add('hidden');
       }
+    });
+  }
+
+  const btnMigratePublic = document.getElementById('btn-migrate-public');
+  if (btnMigratePublic) {
+    btnMigratePublic.addEventListener('click', async () => {
+      if (!confirm("現在のデータを公開用に移行しますか？")) return;
+      loadingOverlay.classList.remove('hidden');
+      try {
+        const user = auth.currentUser;
+        if (!user) { alert("ログインしてください"); return; }
+        
+        const oldCol = collection(db, 'users', user.uid, 'memories');
+        const newCol = collection(db, 'public_memories');
+        
+        const snapshot = await getDocs(oldCol);
+        let count = 0;
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
+          await addDoc(newCol, data);
+          count++;
+        }
+        alert(`移行完了しました！ (${count}件の思い出)`);
+      } catch (e) {
+        console.error(e);
+        alert("エラーが発生しました: " + e.message);
+      }
+      loadingOverlay.classList.add('hidden');
     });
   }
 
