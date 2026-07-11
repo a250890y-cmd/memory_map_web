@@ -457,8 +457,21 @@ function openFullscreenImage(src) {
   modal.classList.remove('hidden');
 }
 
-async function playAlbumTour() {
+let tourIsPlaying = false;
+
+function stopTour() {
+  tourIsPlaying = false;
   if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
+  const overlay = document.getElementById('tour-slideshow-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    overlay.classList.add('fade-out');
+  }
+}
+
+async function playAlbumTour() {
+  stopTour();
+  tourIsPlaying = true;
   
   let memoriesToPlay = getFilteredMemories();
   if (memoriesToPlay.length === 0) {
@@ -477,34 +490,81 @@ async function playAlbumTour() {
   if (tourPolyline) map.removeLayer(tourPolyline);
   tourPolyline = L.polyline(latlngs, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
   
-  map.fitBounds(tourPolyline.getBounds(), { padding: [50, 50] });
   map.closePopup();
 
   const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
+  const overlaySidebar = document.getElementById('sidebar-overlay');
   if (window.innerWidth <= 768) {
     sidebar.classList.remove('open');
-    overlay.classList.add('hidden');
+    overlaySidebar.classList.add('hidden');
   }
 
+  const tourOverlay = document.getElementById('tour-slideshow-overlay');
+  const tourImage = document.getElementById('tour-image');
+  const tourImageContainer = document.getElementById('tour-image-container');
+  const tourTitle = document.getElementById('tour-title');
+  const tourDate = document.getElementById('tour-date');
+  const tourDiary = document.getElementById('tour-diary');
+
+  tourOverlay.classList.remove('hidden');
+  tourOverlay.classList.add('fade-out'); // Start faded out
+
   let index = 0;
-  const playNext = () => {
+
+  const playNext = async () => {
+    if (!tourIsPlaying) return;
+    
     if (index >= memoriesToPlay.length) {
-      if (tourPolyline) map.removeLayer(tourPolyline);
-      tourPolyline = null;
+      stopTour();
+      alert("ツアーが終了しました！");
       return;
     }
+
     const mem = memoriesToPlay[index];
     
-    markersLayer.zoomToShowLayer(mem.marker, () => {
-      map.panTo(mem.marker.getLatLng(), { animate: true, duration: 0.5 });
-      mem.marker.openPopup();
-      index++;
-      tourTimeout = setTimeout(playNext, 4000);
-    });
+    // 1. Fade out current content
+    tourOverlay.classList.add('fade-out');
+    
+    // Wait for fade out
+    await new Promise(r => setTimeout(r, 800));
+    if (!tourIsPlaying) return;
+
+    // 2. Move map to next location
+    map.flyTo([mem.lat, mem.lng], 15, { animate: true, duration: 1.5 });
+    
+    // Wait for map to finish moving (approx 1.5s)
+    await new Promise(r => setTimeout(r, 1600));
+    if (!tourIsPlaying) return;
+
+    // 3. Update overlay content
+    if (mem.imageUrls && mem.imageUrls.length > 0) {
+      tourImage.src = mem.imageUrls[0];
+      tourImageContainer.classList.remove('no-image');
+    } else {
+      tourImage.src = '';
+      tourImageContainer.classList.add('no-image');
+    }
+
+    tourTitle.textContent = mem.title || '無題の思い出';
+    
+    let displayDate = new Date(mem.timestamp).toLocaleDateString();
+    if (mem.datetime) {
+      const dt = new Date(mem.datetime);
+      displayDate = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+    tourDate.textContent = displayDate;
+    tourDiary.textContent = mem.diary || '';
+
+    // 4. Fade in
+    tourOverlay.classList.remove('fade-out');
+
+    index++;
+    // 5. Wait before next
+    tourTimeout = setTimeout(playNext, 5000); // Display for 5 seconds
   };
   
-  tourTimeout = setTimeout(playNext, 1000);
+  // Start the first animation loop
+  playNext();
 }
 
 function setupEventListeners() {
@@ -619,8 +679,12 @@ function setupEventListeners() {
   const btnPlayTour = document.getElementById('btn-play-tour');
   const fullscreenModal = document.getElementById('fullscreen-image-modal');
   const btnCloseFullscreen = document.getElementById('btn-close-fullscreen');
+  const btnCloseTour = document.getElementById('btn-close-tour');
   
   btnPlayTour.addEventListener('click', playAlbumTour);
+  if (btnCloseTour) {
+    btnCloseTour.addEventListener('click', stopTour);
+  }
   
   btnCloseFullscreen.addEventListener('click', () => fullscreenModal.classList.add('hidden'));
   fullscreenModal.addEventListener('click', (e) => {
