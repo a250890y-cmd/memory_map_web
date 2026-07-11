@@ -732,3 +732,53 @@ body {
   padding: 4px 8px;
   border-radius: 6px;
 }
+
+/* Tour Route Lines */
+.route-tour {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+/* Train: Railway effect using dasharray */
+.route-tour-train {
+  stroke: #475569; /* Slate 600 */
+  stroke-width: 8;
+  stroke-dasharray: 20, 15;
+}
+.route-tour-train::after {
+  content: ''; /* pseudo-elements don't work directly on SVG paths in Leaflet, but we rely on simple dash array */
+}
+
+/* Flight: Light curved dots */
+.route-tour-flight {
+  stroke: #8b5cf6; /* Violet */
+  stroke-width: 4;
+  stroke-dasharray: 8, 12;
+}
+
+/* Car: Solid thick line */
+.route-tour-car {
+  stroke: #3b82f6; /* Blue */
+  stroke-width: 5;
+}
+
+/* Walk: Small dotted line */
+.route-tour-walk {
+  stroke: #10b981; /* Emerald */
+  stroke-width: 4;
+  stroke-dasharray: 4, 8;
+}
+
+/* Bike: Dashed line */
+.route-tour-bike {
+  stroke: #f59e0b; /* Amber */
+  stroke-width: 4;
+  stroke-dasharray: 10, 10;
+}
+
+/* Moving Marker Container */
+.moving-marker-icon {
+  z-index: 1000 !important;
+  pointer-events: none;
+}
