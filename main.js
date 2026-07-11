@@ -457,82 +457,12 @@ function openFullscreenImage(src) {
   modal.classList.remove('hidden');
 }
 
-// --- Route Utility Functions ---
-async function fetchOSRMRoute(startLat, startLng, endLat, endLng, mode) {
-  // mode: 'walk', 'bike', 'car'
-  let profile = 'driving';
-  if (mode === 'walk') profile = 'foot';
-  if (mode === 'bike') profile = 'cycling';
-  
-  const url = `https://router.project-osrm.org/route/v1/${profile}/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.routes && data.routes.length > 0) {
-      // GeoJSON returns [lng, lat], we need [lat, lng] for Leaflet
-      return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-    }
-  } catch(e) {
-    console.error("OSRM route fetch failed", e);
-  }
-  // Fallback to straight line
-  return [[startLat, startLng], [endLat, endLng]];
-}
-
-function getBezierCurvePoints(start, end, numPoints = 100) {
-  const p1 = start;
-  const p2 = end;
-  
-  // Calculate control point: midpoint offset perpendicularly to create an arc
-  const midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-  
-  // Perpendicular vector
-  const dx = p2[0] - p1[0];
-  const dy = p2[1] - p1[1];
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  
-  // Adjust arc height based on distance
-  const height = dist * 0.3; 
-  
-  // Normalize perpendicular
-  const perp = [-dy / dist, dx / dist];
-  const cp = [midPoint[0] + perp[0] * height, midPoint[1] + perp[1] * height];
-
-  const points = [];
-  for (let i = 0; i <= numPoints; i++) {
-    const t = i / numPoints;
-    const mt = 1 - t;
-    const lat = mt * mt * p1[0] + 2 * mt * t * cp[0] + t * t * p2[0];
-    const lng = mt * mt * p1[1] + 2 * mt * t * cp[1] + t * t * p2[1];
-    points.push([lat, lng]);
-  }
-  return points;
-}
-
-// Global animation state
-let tourState = { isPlaying: false, movingMarker: null, currentLayer: null, timeout: null, frameReq: null };
-
-function stopTour() {
-  tourState.isPlaying = false;
-  if (tourState.timeout) clearTimeout(tourState.timeout);
-  if (tourState.frameReq) cancelAnimationFrame(tourState.frameReq);
-  if (tourState.movingMarker) {
-    map.removeLayer(tourState.movingMarker);
-    tourState.movingMarker = null;
-  }
-  if (tourState.currentLayer) {
-    map.removeLayer(tourState.currentLayer);
-    tourState.currentLayer = null;
-  }
-}
-
 async function playAlbumTour() {
-  stopTour();
-  tourState.isPlaying = true;
+  if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
   
   let memoriesToPlay = getFilteredMemories();
-  if (memoriesToPlay.length < 2) {
-    alert("ツアーを再生するには、アルバムに2つ以上の思い出が必要です。");
+  if (memoriesToPlay.length === 0) {
+    alert("表示する思い出がありません。");
     return;
   }
   
@@ -542,6 +472,14 @@ async function playAlbumTour() {
     return tA - tB;
   });
 
+  const latlngs = memoriesToPlay.map(m => [m.lat, m.lng]);
+  
+  if (tourPolyline) map.removeLayer(tourPolyline);
+  tourPolyline = L.polyline(latlngs, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
+  
+  map.fitBounds(tourPolyline.getBounds(), { padding: [50, 50] });
+  map.closePopup();
+
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   if (window.innerWidth <= 768) {
@@ -549,106 +487,24 @@ async function playAlbumTour() {
     overlay.classList.add('hidden');
   }
 
-  // Define emojis for transport modes
-  const modeEmojis = {
-    walk: '🚶', bike: '🚴', car: '🚗', train: '🚃', flight: '✈️', ship: '🚢', none: '📍'
-  };
-
-  let currentIndex = 0;
-
-  const playNextSegment = async () => {
-    if (!tourState.isPlaying || currentIndex >= memoriesToPlay.length - 1) {
-      stopTour();
-      alert("ツアーが終了しました！");
+  let index = 0;
+  const playNext = () => {
+    if (index >= memoriesToPlay.length) {
+      if (tourPolyline) map.removeLayer(tourPolyline);
+      tourPolyline = null;
       return;
     }
-
-    const startMem = memoriesToPlay[currentIndex];
-    const endMem = memoriesToPlay[currentIndex + 1];
-    const mode = endMem.transportMode || 'none';
-    const startPos = [startMem.lat, startMem.lng];
-    const endPos = [endMem.lat, endMem.lng];
-
-    // Focus on start point
-    map.flyTo(startPos, 14, { duration: 1.5 });
-    startMem.marker.openPopup();
+    const mem = memoriesToPlay[index];
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    if (!tourState.isPlaying) return;
-    startMem.marker.closePopup();
-
-    let coords = [];
-    if (mode === 'car' || mode === 'walk' || mode === 'bike') {
-      coords = await fetchOSRMRoute(startPos[0], startPos[1], endPos[0], endPos[1], mode);
-    } else if (mode === 'flight') {
-      coords = getBezierCurvePoints(startPos, endPos, 50);
-    } else {
-      coords = [startPos, endPos]; // Train, ship, none (Straight line)
-    }
-
-    // Draw background line
-    if (tourState.currentLayer) map.removeLayer(tourState.currentLayer);
-    
-    // Train has double line effect, flight is dotted, etc. CSS will handle the style
-    tourState.currentLayer = L.polyline(coords, { className: `route-tour route-tour-${mode}` }).addTo(map);
-
-    // Create moving marker
-    const emoji = modeEmojis[mode] || modeEmojis['none'];
-    const movingIcon = L.divIcon({
-      className: 'moving-marker-icon',
-      html: `<div style="font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); transform: translate(-50%, -50%);">${emoji}</div>`,
-      iconSize: [0, 0]
-    });
-    
-    if (tourState.movingMarker) map.removeLayer(tourState.movingMarker);
-    tourState.movingMarker = L.marker(startPos, { icon: movingIcon }).addTo(map);
-
-    // Zoom out slightly to see the route if it's long
-    map.fitBounds(L.latLngBounds(startPos, endPos), { padding: [50, 50], maxZoom: 14 });
-
-    // Animate marker
-    const duration = 3000; // 3 seconds per segment
-    const startTime = performance.now();
-    const totalDist = coords.length - 1;
-
-    return new Promise(resolve => {
-      const animate = (time) => {
-        if (!tourState.isPlaying) return resolve();
-        
-        let progress = (time - startTime) / duration;
-        if (progress > 1) progress = 1;
-
-        const exactIdx = progress * totalDist;
-        const lowerIdx = Math.floor(exactIdx);
-        const upperIdx = Math.ceil(exactIdx);
-        
-        if (upperIdx < coords.length) {
-          const t = exactIdx - lowerIdx;
-          const p1 = coords[lowerIdx];
-          const p2 = coords[upperIdx];
-          const lat = p1[0] + (p2[0] - p1[0]) * t;
-          const lng = p1[1] + (p2[1] - p1[1]) * t;
-          tourState.movingMarker.setLatLng([lat, lng]);
-        }
-
-        if (progress < 1) {
-          tourState.frameReq = requestAnimationFrame(animate);
-        } else {
-          // Reached end of segment
-          tourState.movingMarker.setLatLng(endPos);
-          endMem.marker.openPopup();
-          currentIndex++;
-          tourState.timeout = setTimeout(() => {
-            resolve();
-            playNextSegment();
-          }, 2000); // Wait at destination
-        }
-      };
-      tourState.frameReq = requestAnimationFrame(animate);
+    markersLayer.zoomToShowLayer(mem.marker, () => {
+      map.panTo(mem.marker.getLatLng(), { animate: true, duration: 0.5 });
+      mem.marker.openPopup();
+      index++;
+      tourTimeout = setTimeout(playNext, 4000);
     });
   };
-
-  playNextSegment();
+  
+  tourTimeout = setTimeout(playNext, 1000);
 }
 
 function setupEventListeners() {
