@@ -164,11 +164,32 @@ function renderMarkers() {
   let filtered = getFilteredMemories();
     
   filtered.forEach(memory => {
+    let iconHtml = `<div style="background-color: #ef4444; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`;
+    let iconSize = [20, 20];
+    let iconAnchor = [10, 10];
+    
+    if (memory.imageUrls && memory.imageUrls.length > 0) {
+      iconHtml = `
+        <div style="
+          width: 40px; 
+          height: 40px; 
+          border-radius: 50%; 
+          border: 3px solid white; 
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+          background-image: url('${memory.imageUrls[0]}'); 
+          background-size: cover; 
+          background-position: center;
+        "></div>
+      `;
+      iconSize = [46, 46];
+      iconAnchor = [23, 23];
+    }
+
     const customIcon = L.divIcon({
       className: 'custom-div-icon',
-      html: `<div style="background-color: #ef4444; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
+      html: iconHtml,
+      iconSize: iconSize,
+      iconAnchor: iconAnchor
     });
 
     const marker = L.marker([memory.lat, memory.lng], { icon: customIcon }).addTo(markersLayer);
