@@ -458,10 +458,12 @@ function openFullscreenImage(src) {
 }
 
 let tourIsPlaying = false;
+let tourSlideInterval = null;
 
 function stopTour() {
   tourIsPlaying = false;
   if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
+  if (tourSlideInterval) { clearInterval(tourSlideInterval); tourSlideInterval = null; }
   const overlay = document.getElementById('tour-slideshow-overlay');
   if (overlay) {
     overlay.classList.add('hidden');
@@ -537,11 +539,30 @@ async function playAlbumTour() {
     if (!tourIsPlaying) return;
 
     // 3. Update overlay content
+    if (tourSlideInterval) { clearInterval(tourSlideInterval); tourSlideInterval = null; }
+    tourImageContainer.innerHTML = '';
+    
     if (mem.imageUrls && mem.imageUrls.length > 0) {
-      tourImage.src = mem.imageUrls[0];
+      mem.imageUrls.forEach((url, i) => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = i === 0 ? 'tour-slide-img active' : 'tour-slide-img';
+        tourImageContainer.appendChild(img);
+      });
       tourImageContainer.classList.remove('no-image');
+      
+      if (mem.imageUrls.length > 1) {
+        let currentImgIdx = 0;
+        tourSlideInterval = setInterval(() => {
+          const imgs = tourImageContainer.querySelectorAll('.tour-slide-img');
+          if (imgs.length > 1) {
+            imgs[currentImgIdx].classList.remove('active');
+            currentImgIdx = (currentImgIdx + 1) % imgs.length;
+            imgs[currentImgIdx].classList.add('active');
+          }
+        }, 3000);
+      }
     } else {
-      tourImage.src = '';
       tourImageContainer.classList.add('no-image');
     }
 
@@ -559,8 +580,11 @@ async function playAlbumTour() {
     tourOverlay.classList.remove('fade-out');
 
     index++;
-    // 5. Wait before next
-    tourTimeout = setTimeout(playNext, 5000); // Display for 5 seconds
+    // 5. Wait before next (dynamic based on image count)
+    const displayDuration = mem.imageUrls && mem.imageUrls.length > 1 
+      ? Math.max(5000, mem.imageUrls.length * 3000) 
+      : 5000;
+    tourTimeout = setTimeout(playNext, displayDuration); // Display longer if multiple images
   };
   
   // Start the first animation loop

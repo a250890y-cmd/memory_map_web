@@ -810,12 +810,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-.tour-image-container img {
+.tour-slide-img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.tour-slide-img.active {
+  opacity: 1;
 }
 
 .tour-image-container.no-image {
