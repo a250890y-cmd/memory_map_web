@@ -45,6 +45,70 @@ let currentDateFrom = '';
 let currentDateTo = '';
 let currentTags = [];
 
+let homeLocation = JSON.parse(localStorage.getItem('homeLocation')) || null;
+let homeMarker = null;
+
+function renderHomeMarker() {
+  if (homeMarker) {
+    map.removeLayer(homeMarker);
+    homeMarker = null;
+  }
+  if (homeLocation) {
+    const homeIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">🏠</div>`,
+      iconSize: [38, 38],
+      iconAnchor: [19, 19]
+    });
+    homeMarker = L.marker([homeLocation.lat, homeLocation.lng], { icon: homeIcon }).addTo(map);
+    homeMarker.bindPopup('<div style="text-align: center;"><b>自宅</b><br><button class="btn primary" style="padding: 4px 8px; margin-top: 8px; font-size: 0.8rem; border-radius: 4px;" onclick="clearHomeLocation()">解除する</button></div>');
+  }
+}
+
+window.clearHomeLocation = function() {
+  homeLocation = null;
+  localStorage.removeItem('homeLocation');
+  renderHomeMarker();
+  if (currentFilterAlbum) drawAlbumRoute(getFilteredMemories());
+};
+
+async function drawAlbumRoute(memories) {
+  if (tourPolyline) {
+    map.removeLayer(tourPolyline);
+    tourPolyline = null;
+  }
+
+  if (!memories || memories.length === 0) return;
+
+  const sorted = [...memories].sort((a, b) => {
+    const tA = new Date(a.datetime || a.timestamp).getTime();
+    const tB = new Date(b.datetime || b.timestamp).getTime();
+    return tA - tB;
+  });
+
+  const latlngs = sorted.map(m => [m.lat, m.lng]);
+  if (homeLocation) {
+    latlngs.unshift([homeLocation.lat, homeLocation.lng]);
+  }
+
+  let routeCoords = latlngs;
+  if (latlngs.length >= 2) {
+    try {
+      const coordsString = latlngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("OSRM API error");
+      const data = await res.json();
+      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
+        routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      }
+    } catch (e) {
+      console.warn("OSRMルート取得失敗、直線描画に切り替えます:", e);
+    }
+    tourPolyline = L.polyline(routeCoords, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
+  }
+}
+
 async function init() {
   const japanCenter = [36.2048, 138.2529];
   map = L.map('map', { zoomControl: false, worldCopyJump: true }).setView(japanCenter, 5);
@@ -62,6 +126,30 @@ async function init() {
   .addTo(map);
 
   currentLayer.addTo(map);
+  
+  renderHomeMarker();
+
+  map.on('contextmenu', (e) => {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    const popupContent = document.createElement('div');
+    popupContent.innerHTML = `<div style="text-align: center;">
+      <button class="btn primary" style="padding: 6px 12px; font-size: 0.9rem; border-radius: 8px; width: 100%;">ここを自宅に設定する</button>
+    </div>`;
+    
+    popupContent.querySelector('button').addEventListener('click', () => {
+      homeLocation = { lat, lng };
+      localStorage.setItem('homeLocation', JSON.stringify(homeLocation));
+      renderHomeMarker();
+      map.closePopup();
+      if (currentFilterAlbum) drawAlbumRoute(getFilteredMemories());
+    });
+    
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent(popupContent)
+      .openOn(map);
+  });
   
   markersLayer = L.markerClusterGroup({
     maxClusterRadius: 40,
@@ -156,10 +244,6 @@ async function loadMemories() {
 
 function renderMarkers() {
   markersLayer.clearLayers();
-  if (tourPolyline) {
-    map.removeLayer(tourPolyline);
-    tourPolyline = null;
-  }
   
   let filtered = getFilteredMemories();
     
@@ -334,6 +418,15 @@ function setAlbumFilter(albumName) {
   if (tourTimeout) { clearTimeout(tourTimeout); tourTimeout = null; }
   renderSidebar();
   renderMarkers();
+  
+  if (albumName) {
+    drawAlbumRoute(getFilteredMemories());
+  } else {
+    if (tourPolyline) {
+      map.removeLayer(tourPolyline);
+      tourPolyline = null;
+    }
+  }
 }
 
 function setTagFilter(tagName) {
