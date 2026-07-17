@@ -511,7 +511,30 @@ async function playAlbumTour() {
   const latlngs = memoriesToPlay.map(m => [m.lat, m.lng]);
   
   if (tourPolyline) map.removeLayer(tourPolyline);
-  tourPolyline = L.polyline(latlngs, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
+  
+  // OSRM APIを利用して道路沿いのルートを取得する
+  let routeCoords = latlngs;
+  if (latlngs.length >= 2) {
+    try {
+      // OSRMのURLパラメータ用に lng,lat;lng,lat... の形式にする
+      const coordsString = latlngs.map(ll => `${ll[1]},${ll[0]}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
+      
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("OSRM API error");
+      
+      const data = await res.json();
+      if (data.code === "Ok" && data.routes && data.routes.length > 0) {
+        // GeoJSONの座標は [lng, lat] なので、Leaflet用に [lat, lng] に変換
+        routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      }
+    } catch (e) {
+      console.warn("OSRMルート取得失敗、直線描画に切り替えます:", e);
+      // エラー時はフォールバックとして元のlatlngs（直線）をそのまま使う
+    }
+  }
+
+  tourPolyline = L.polyline(routeCoords, {color: '#ef4444', weight: 3, dashArray: '10, 10'}).addTo(map);
   
   map.closePopup();
 
