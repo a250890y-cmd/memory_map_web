@@ -748,8 +748,27 @@ function setupEventListeners() {
   btnHamburger.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
   
-
-
+  const btnSetHome = document.getElementById('btn-set-home');
+  if (btnSetHome) {
+    btnSetHome.addEventListener('click', () => {
+      alert("地図上で自宅に設定したい場所をクリックしてください。");
+      document.getElementById('map').style.cursor = 'crosshair';
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
+      
+      map.once('click', (e) => {
+        document.getElementById('map').style.cursor = '';
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        homeLocation = { lat, lng };
+        localStorage.setItem('homeLocation', JSON.stringify(homeLocation));
+        renderHomeMarker();
+        if (currentFilterAlbum) drawAlbumRoute(getFilteredMemories());
+        alert("自宅を設定しました！");
+      });
+    });
+  }
   const btnAbout = document.getElementById('btn-about');
   const aboutModal = document.getElementById('about-modal');
   const btnCloseAbout = document.getElementById('btn-close-about');
