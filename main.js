@@ -56,9 +56,15 @@ function renderHomeMarker() {
   if (homeLocation) {
     const homeIcon = L.divIcon({
       className: 'custom-div-icon',
-      html: `<div style="background-color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">🏠</div>`,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19]
+      html: `
+        <svg width="44" height="58" viewBox="0 0 44 58" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.5));">
+          <path d="M 22 2 C 10.95 2 2 10.95 2 22 C 2 37 22 56 22 56 C 22 56 42 37 42 22 C 42 10.95 33.05 2 22 2 Z" fill="#3b3b3b" stroke="white" stroke-width="2"/>
+          <path d="M 12 23 L 22 14 L 32 23 V 31 A 2 2 0 0 1 30 33 H 14 A 2 2 0 0 1 12 31 Z" fill="white"/>
+          <path d="M 19 33 V 26 H 25 V 33 Z" fill="#3b3b3b"/>
+        </svg>
+      `,
+      iconSize: [44, 58],
+      iconAnchor: [22, 56]
     });
     homeMarker = L.marker([homeLocation.lat, homeLocation.lng], { icon: homeIcon }).addTo(map);
     homeMarker.bindPopup('<div style="text-align: center;"><b>自宅</b><br><button class="btn primary" style="padding: 4px 8px; margin-top: 8px; font-size: 0.8rem; border-radius: 4px;" onclick="clearHomeLocation()">解除する</button></div>');
