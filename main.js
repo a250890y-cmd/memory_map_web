@@ -611,14 +611,14 @@ async function playAlbumTour() {
     memoriesToPlay.unshift({
       lat: homeLocation.lat,
       lng: homeLocation.lng,
-      title: '🏠 自宅 (出発地点)',
+      title: '自宅 (出発地点)',
       diary: 'ここから旅がスタートします！',
       imageUrls: []
     });
   }
 
   // Draw the route (drawAlbumRoute prepends homeLocation internally, so pass memories without home)
-  drawAlbumRoute(memoriesToPlay.filter(m => m.title !== '🏠 自宅 (出発地点)'));
+  drawAlbumRoute(memoriesToPlay.filter(m => m.title !== '自宅 (出発地点)'));
   
   map.closePopup();
 
@@ -709,9 +709,14 @@ async function playAlbumTour() {
 
     index++;
     // 5. Wait before next (dynamic based on image count)
-    const displayDuration = mem.imageUrls && mem.imageUrls.length > 1 
+    let displayDuration = mem.imageUrls && mem.imageUrls.length > 1 
       ? Math.max(5000, mem.imageUrls.length * 3000) 
       : 5000;
+      
+    if (mem.title === '自宅 (出発地点)') {
+      displayDuration = 2000; // 短く表示する
+    }
+    
     tourTimeout = setTimeout(playNext, displayDuration); // Display longer if multiple images
   };
   
