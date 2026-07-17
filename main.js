@@ -95,6 +95,7 @@ async function drawAlbumRoute(memories) {
   const latlngs = sorted.map(m => [m.lat, m.lng]);
   if (homeLocation) {
     latlngs.unshift([homeLocation.lat, homeLocation.lng]);
+    latlngs.push([homeLocation.lat, homeLocation.lng]);
   }
 
   let routeCoords = latlngs;
@@ -615,10 +616,17 @@ async function playAlbumTour() {
       diary: 'ここから旅がスタートします！',
       imageUrls: []
     });
+    memoriesToPlay.push({
+      lat: homeLocation.lat,
+      lng: homeLocation.lng,
+      title: '自宅 (帰宅)',
+      diary: '無事に家に帰ってきました！お疲れ様でした。',
+      imageUrls: []
+    });
   }
 
-  // Draw the route (drawAlbumRoute prepends homeLocation internally, so pass memories without home)
-  drawAlbumRoute(memoriesToPlay.filter(m => m.title !== '自宅 (出発地点)'));
+  // Draw the route (drawAlbumRoute prepends and appends homeLocation internally, so pass memories without home)
+  drawAlbumRoute(memoriesToPlay.filter(m => m.title !== '自宅 (出発地点)' && m.title !== '自宅 (帰宅)'));
   
   map.closePopup();
 
@@ -713,7 +721,7 @@ async function playAlbumTour() {
       ? Math.max(5000, mem.imageUrls.length * 3000) 
       : 5000;
       
-    if (mem.title === '自宅 (出発地点)') {
+    if (mem.title === '自宅 (出発地点)' || mem.title === '自宅 (帰宅)') {
       displayDuration = 2000; // 短く表示する
     }
     
