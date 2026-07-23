@@ -41,7 +41,10 @@
         <div class="sidebar-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h3 style="margin-bottom: 0;">Albums</h3>
-            <button id="btn-play-tour" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">▶ ツアー再生</button>
+            <div style="display: flex; gap: 4px;">
+              <button id="btn-open-album-modal" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-main);">📁 一覧</button>
+              <button id="btn-play-tour" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">▶ ツアー再生</button>
+            </div>
           </div>
           <ul id="sidebar-album-list" class="album-list">
             <li class="active" data-album="">すべて表示</li>
@@ -223,6 +226,28 @@
 
         <div style="margin-top: 2rem;">
           <button id="btn-close-about" class="btn primary" style="width: 100%;">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Album List Modal -->
+    <div id="album-modal" class="modal-overlay hidden" style="z-index: 2500;">
+      <div class="modal-content glass-panel scrollable" style="max-width: 840px; width: 92%; max-height: 85vh;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.8rem;">
+          <h2 style="margin: 0; color: var(--primary-color); font-size: 1.3rem;">
+            📁 アルバム一覧
+          </h2>
+          <button id="btn-close-album-modal" class="btn-close" style="margin: 0; background: transparent; padding: 4px; border: none; cursor: pointer;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div style="margin-bottom: 1.2rem;">
+          <input type="text" id="album-modal-search" placeholder="アルバム名やキーワードを検索..." class="filter-input" style="width: 100%; box-sizing: border-box;" />
+        </div>
+
+        <div id="album-modal-grid" class="album-grid">
+          <!-- Album cards rendered dynamically -->
         </div>
       </div>
     </div>

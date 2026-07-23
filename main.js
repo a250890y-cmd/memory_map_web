@@ -739,6 +739,114 @@ async function playAlbumTour() {
   playNext();
 }
 
+function renderAlbumModalGrid(searchQuery = '') {
+  const grid = document.getElementById('album-modal-grid');
+  if (!grid) return;
+
+  const albumsMap = {};
+  allMemories.forEach(mem => {
+    const albumName = mem.album ? mem.album.trim() : '';
+    if (!albumName) return;
+    if (!albumsMap[albumName]) {
+      albumsMap[albumName] = [];
+    }
+    albumsMap[albumName].push(mem);
+  });
+
+  const albumNames = Object.keys(albumsMap).filter(name => {
+    if (!searchQuery) return true;
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  if (albumNames.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">該当するアルバムが見つかりませんでした</p>
+        <p style="font-size: 0.85rem;">新しい思い出を記録してアルバムを作成してみましょう！</p>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = '';
+
+  albumNames.forEach(name => {
+    const memories = albumsMap[name];
+    memories.sort((a, b) => new Date(a.datetime || a.timestamp) - new Date(b.datetime || b.timestamp));
+
+    const coverMem = memories.find(m => m.imageUrls && m.imageUrls.length > 0);
+    const coverUrl = coverMem ? coverMem.imageUrls[0] : null;
+
+    let dateStr = '';
+    if (memories.length > 0) {
+      const firstDate = memories[0].datetime || memories[0].timestamp;
+      const lastDate = memories[memories.length - 1].datetime || memories[memories.length - 1].timestamp;
+      if (firstDate) {
+        const d1 = new Date(firstDate).toLocaleDateString();
+        const d2 = new Date(lastDate).toLocaleDateString();
+        dateStr = d1 === d2 ? d1 : `${d1} ~ ${d2}`;
+      }
+    }
+
+    const card = document.createElement('div');
+    card.className = 'album-card';
+
+    const thumbHtml = coverUrl
+      ? `<img src="${coverUrl}" alt="${name}" class="album-card-thumb" />`
+      : `<div class="album-card-thumb">🖼️</div>`;
+
+    card.innerHTML = `
+      ${thumbHtml}
+      <div class="album-card-body">
+        <h3 class="album-card-title">${name}</h3>
+        <div class="album-card-meta">
+          <span>📍 ${memories.length} 件の思い出</span>
+          <span>${dateStr}</span>
+        </div>
+        <div class="album-card-actions">
+          <button class="album-card-btn primary btn-select-album">選択して表示</button>
+          <button class="album-card-btn btn-tour-album">▶ ツアー</button>
+        </div>
+      </div>
+    `;
+
+    const btnSelect = card.querySelector('.btn-select-album');
+    const btnTour = card.querySelector('.btn-tour-album');
+    const albumModal = document.getElementById('album-modal');
+
+    const selectAlbum = () => {
+      currentFilterAlbum = name;
+      setAlbumFilter(name);
+      albumModal.classList.add('hidden');
+
+      const albumMemories = getFilteredMemories();
+      if (albumMemories.length > 0) {
+        const bounds = L.latLngBounds(albumMemories.map(m => [m.lat, m.lng]));
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    };
+
+    btnSelect.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectAlbum();
+    });
+
+    btnTour.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentFilterAlbum = name;
+      setAlbumFilter(name);
+      albumModal.classList.add('hidden');
+      playAlbumTour();
+    });
+
+    card.addEventListener('click', () => {
+      selectAlbum();
+    });
+
+    grid.appendChild(card);
+  });
+}
+
 function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -758,6 +866,39 @@ function setupEventListeners() {
   
   btnHamburger.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
+
+  const btnOpenAlbumModal = document.getElementById('btn-open-album-modal');
+  const btnCloseAlbumModal = document.getElementById('btn-close-album-modal');
+  const albumModal = document.getElementById('album-modal');
+  const albumModalSearch = document.getElementById('album-modal-search');
+
+  if (btnOpenAlbumModal && albumModal) {
+    btnOpenAlbumModal.addEventListener('click', () => {
+      renderAlbumModalGrid('');
+      albumModal.classList.remove('hidden');
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
+    });
+
+    if (btnCloseAlbumModal) {
+      btnCloseAlbumModal.addEventListener('click', () => {
+        albumModal.classList.add('hidden');
+      });
+    }
+
+    albumModal.addEventListener('click', (e) => {
+      if (e.target === albumModal) {
+        albumModal.classList.add('hidden');
+      }
+    });
+
+    if (albumModalSearch) {
+      albumModalSearch.addEventListener('input', (e) => {
+        renderAlbumModalGrid(e.target.value.trim());
+      });
+    }
+  }
   
   const btnSetHome = document.getElementById('btn-set-home');
   if (btnSetHome) {
