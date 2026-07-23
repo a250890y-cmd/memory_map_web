@@ -263,6 +263,38 @@
       </div>
     </div>
 
+    <!-- Album Edit Modal -->
+    <div id="album-edit-modal" class="modal-overlay hidden" style="z-index: 2600;">
+      <div class="modal-content glass-panel scrollable" style="max-width: 540px; width: 92%; max-height: 85vh; padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.8rem;">
+          <h2 style="margin: 0; color: var(--primary-color); font-size: 1.3rem; font-weight: 700;">
+            アルバムの編集
+          </h2>
+          <button id="btn-close-album-edit" class="btn-close" style="margin: 0; background: rgba(0,0,0,0.06); border-radius: 50%; width: 34px; height: 34px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-main);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 1.2rem;">
+          <label style="font-weight: 600; margin-bottom: 6px; display: block;">アルバム名</label>
+          <input type="text" id="album-edit-name-input" class="filter-input" style="width: 100%; box-sizing: border-box;" placeholder="アルバム名を入力..." />
+        </div>
+
+        <div class="input-group" style="margin-bottom: 1.5rem;">
+          <label style="font-weight: 600; margin-bottom: 6px; display: block;">表紙写真の変更</label>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">アルバムに含まれる写真から表紙にしたいものを選択してください。</p>
+          <div id="album-edit-cover-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding: 6px; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; background: rgba(0,0,0,0.02);">
+            <!-- Photo choices rendered dynamically -->
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+          <button id="btn-save-album-edit" class="btn primary" style="flex: 1;">保存する</button>
+          <button id="btn-cancel-album-edit" class="btn" style="flex: 1; background: rgba(0,0,0,0.05); color: var(--text-main);">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Tour Slideshow Overlay -->
     <div id="tour-slideshow-overlay" class="tour-overlay hidden">
       <button id="btn-close-tour" class="btn-close-tour">

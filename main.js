@@ -44,6 +44,9 @@ let currentSearchQuery = '';
 let currentDateFrom = '';
 let currentDateTo = '';
 let currentTags = [];
+let customAlbumCovers = JSON.parse(localStorage.getItem('customAlbumCovers')) || {};
+let currentEditingAlbumName = null;
+let currentSelectedCoverUrl = null;
 
 let homeLocation = JSON.parse(localStorage.getItem('homeLocation')) || null;
 let homeMarker = null;
@@ -815,8 +818,9 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
     const memories = albumsMap[name];
     memories.sort((a, b) => new Date(a.datetime || a.timestamp) - new Date(b.datetime || b.timestamp));
 
+    const customCover = customAlbumCovers[name];
     const coverMem = memories.find(m => m.imageUrls && m.imageUrls.length > 0);
-    const coverUrl = coverMem ? coverMem.imageUrls[0] : null;
+    const coverUrl = customCover || (coverMem ? coverMem.imageUrls[0] : null);
 
     let dateStr = '';
     if (memories.length > 0) {
@@ -853,14 +857,16 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
           ${dateStr ? `<span class="album-card-date">${dateStr}</span>` : ''}
         </div>
         <div class="album-card-actions">
-          <button class="album-card-btn primary btn-select-album">選択して表示</button>
+          <button class="album-card-btn primary btn-select-album">選択</button>
           <button class="album-card-btn btn-tour-album">▶ ツアー</button>
+          <button class="album-card-btn btn-edit-album" style="background: rgba(0,0,0,0.05); color: var(--text-main);">編集</button>
         </div>
       </div>
     `;
 
     const btnSelect = card.querySelector('.btn-select-album');
     const btnTour = card.querySelector('.btn-tour-album');
+    const btnEdit = card.querySelector('.btn-edit-album');
     const albumModal = document.getElementById('album-modal');
 
     const selectAlbum = () => {
@@ -888,12 +894,125 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
       playAlbumTour();
     });
 
+    if (btnEdit) {
+      btnEdit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openAlbumEditModal(name);
+      });
+    }
+
     card.addEventListener('click', () => {
       selectAlbum();
     });
 
     grid.appendChild(card);
   });
+}
+
+function openAlbumEditModal(albumName) {
+  currentEditingAlbumName = albumName;
+  currentSelectedCoverUrl = customAlbumCovers[albumName] || null;
+
+  const editModal = document.getElementById('album-edit-modal');
+  const nameInput = document.getElementById('album-edit-name-input');
+  const grid = document.getElementById('album-edit-cover-grid');
+  if (!editModal || !nameInput || !grid) return;
+
+  nameInput.value = albumName;
+
+  const albumMemories = allMemories.filter(m => m.album && m.album.trim() === albumName);
+  const photos = [];
+  albumMemories.forEach(m => {
+    if (m.imageUrls && m.imageUrls.length > 0) {
+      photos.push(...m.imageUrls);
+    }
+  });
+
+  const uniquePhotos = [...new Set(photos)];
+
+  grid.innerHTML = '';
+  if (uniquePhotos.length === 0) {
+    grid.innerHTML = `<p style="grid-column: 1 / -1; font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 1rem 0;">このアルバムには画像付きの思い出がありません。</p>`;
+  } else {
+    if (!currentSelectedCoverUrl) {
+      currentSelectedCoverUrl = uniquePhotos[0];
+    }
+
+    uniquePhotos.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.className = 'album-edit-cover-item';
+      if (url === currentSelectedCoverUrl) {
+        img.classList.add('selected');
+      }
+
+      img.addEventListener('click', () => {
+        grid.querySelectorAll('.album-edit-cover-item').forEach(el => el.classList.remove('selected'));
+        img.classList.add('selected');
+        currentSelectedCoverUrl = url;
+      });
+
+      grid.appendChild(img);
+    });
+  }
+
+  editModal.classList.remove('hidden');
+}
+
+async function saveAlbumEdit() {
+  const nameInput = document.getElementById('album-edit-name-input');
+  if (!nameInput) return;
+  const newName = nameInput.value.trim();
+
+  if (!newName) {
+    alert("アルバム名を入力してください。");
+    return;
+  }
+
+  const oldName = currentEditingAlbumName;
+  const loadingOverlay = document.getElementById('loading-overlay');
+  if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+
+  try {
+    if (currentSelectedCoverUrl) {
+      customAlbumCovers[newName] = currentSelectedCoverUrl;
+    }
+
+    if (newName !== oldName) {
+      if (customAlbumCovers[oldName]) {
+        delete customAlbumCovers[oldName];
+      }
+
+      const matchingMemories = allMemories.filter(m => m.album === oldName);
+      for (const mem of matchingMemories) {
+        mem.album = newName;
+        await updateMemory(mem);
+      }
+
+      if (currentFilterAlbum === oldName) {
+        currentFilterAlbum = newName;
+      }
+    }
+
+    localStorage.setItem('customAlbumCovers', JSON.stringify(customAlbumCovers));
+
+    const editModal = document.getElementById('album-edit-modal');
+    if (editModal) editModal.classList.add('hidden');
+
+    renderSidebar();
+    renderAlbumModalGrid(
+      document.getElementById('album-modal-search') ? document.getElementById('album-modal-search').value.trim() : '',
+      document.getElementById('album-modal-sort') ? document.getElementById('album-modal-sort').value : 'oldest'
+    );
+    renderMarkers();
+
+    alert("アルバム情報を更新しました！");
+  } catch (err) {
+    console.error("Error updating album:", err);
+    alert("アルバムの更新中にエラーが発生しました。");
+  } finally {
+    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+  }
 }
 
 function setupEventListeners() {
@@ -903,6 +1022,26 @@ function setupEventListeners() {
   const btnHamburger = document.getElementById('btn-hamburger');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
   const sidebar = document.querySelector('.sidebar');
+
+  const btnCloseAlbumEdit = document.getElementById('btn-close-album-edit');
+  const btnCancelAlbumEdit = document.getElementById('btn-cancel-album-edit');
+  const btnSaveAlbumEdit = document.getElementById('btn-save-album-edit');
+  const albumEditModal = document.getElementById('album-edit-modal');
+
+  if (btnCloseAlbumEdit && albumEditModal) {
+    btnCloseAlbumEdit.addEventListener('click', () => albumEditModal.classList.add('hidden'));
+  }
+  if (btnCancelAlbumEdit && albumEditModal) {
+    btnCancelAlbumEdit.addEventListener('click', () => albumEditModal.classList.add('hidden'));
+  }
+  if (btnSaveAlbumEdit) {
+    btnSaveAlbumEdit.addEventListener('click', saveAlbumEdit);
+  }
+  if (albumEditModal) {
+    albumEditModal.addEventListener('click', (e) => {
+      if (e.target === albumEditModal) albumEditModal.classList.add('hidden');
+    });
+  }
   
   const toggleSidebar = () => {
     sidebar.classList.toggle('open');
