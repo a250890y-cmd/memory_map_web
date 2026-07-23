@@ -793,14 +793,14 @@ function renderAlbumModalGrid(searchQuery = '') {
 
     const thumbHtml = coverUrl
       ? `<img src="${coverUrl}" alt="${name}" class="album-card-thumb" />`
-      : `<div class="album-card-thumb">🖼️</div>`;
+      : `<div class="album-card-thumb"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>`;
 
     card.innerHTML = `
       ${thumbHtml}
       <div class="album-card-body">
         <h3 class="album-card-title">${name}</h3>
         <div class="album-card-meta">
-          <span>📍 ${memories.length} 件の思い出</span>
+          <span>${memories.length} 件の思い出</span>
           <span>${dateStr}</span>
         </div>
         <div class="album-card-actions">

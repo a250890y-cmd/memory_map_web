@@ -42,7 +42,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h3 style="margin-bottom: 0;">Albums</h3>
             <div style="display: flex; gap: 4px;">
-              <button id="btn-open-album-modal" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-main);">📁 一覧</button>
+              <button id="btn-open-album-modal" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-main);">一覧</button>
               <button id="btn-play-tour" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">▶ ツアー再生</button>
             </div>
           </div>
@@ -233,11 +233,11 @@
     <!-- Album List Modal -->
     <div id="album-modal" class="modal-overlay hidden" style="z-index: 2500;">
       <div class="modal-content glass-panel scrollable" style="max-width: 840px; width: 92%; max-height: 85vh;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.8rem;">
-          <h2 style="margin: 0; color: var(--primary-color); font-size: 1.3rem;">
-            📁 アルバム一覧
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.8rem; gap: 1rem;">
+          <h2 style="margin: 0; color: var(--primary-color); font-size: 1.3rem; white-space: nowrap; flex-shrink: 0;">
+            アルバム一覧
           </h2>
-          <button id="btn-close-album-modal" class="btn-close" style="margin: 0; background: transparent; padding: 4px; border: none; cursor: pointer;">
+          <button id="btn-close-album-modal" class="btn-close" style="margin: 0; background: transparent; padding: 4px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
