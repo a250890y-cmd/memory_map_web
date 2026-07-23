@@ -858,7 +858,7 @@ body {
 /* Album Grid Modal Styles */
 .album-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.25rem;
   padding: 0.5rem 0;
 }
@@ -894,7 +894,7 @@ body {
 }
 
 .album-card-body {
-  padding: 12px 14px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -902,21 +902,33 @@ body {
 
 .album-card-title {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text-main);
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .album-card-meta {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.album-card-count {
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.album-card-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .album-card-actions {

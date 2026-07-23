@@ -779,12 +779,20 @@ function renderAlbumModalGrid(searchQuery = '') {
 
     let dateStr = '';
     if (memories.length > 0) {
-      const firstDate = memories[0].datetime || memories[0].timestamp;
-      const lastDate = memories[memories.length - 1].datetime || memories[memories.length - 1].timestamp;
-      if (firstDate) {
-        const d1 = new Date(firstDate).toLocaleDateString();
-        const d2 = new Date(lastDate).toLocaleDateString();
-        dateStr = d1 === d2 ? d1 : `${d1} ~ ${d2}`;
+      const validDates = memories
+        .map(m => m.datetime || m.timestamp)
+        .filter(Boolean)
+        .map(d => new Date(d))
+        .filter(d => !isNaN(d.getTime()))
+        .sort((a, b) => a - b);
+
+      if (validDates.length > 0) {
+        const first = validDates[0];
+        const last = validDates[validDates.length - 1];
+        const fmt = d => `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+        const d1 = fmt(first);
+        const d2 = fmt(last);
+        dateStr = d1 === d2 ? d1 : `${d1} 〜 ${d2}`;
       }
     }
 
@@ -800,8 +808,8 @@ function renderAlbumModalGrid(searchQuery = '') {
       <div class="album-card-body">
         <h3 class="album-card-title">${name}</h3>
         <div class="album-card-meta">
-          <span>${memories.length} 件の思い出</span>
-          <span>${dateStr}</span>
+          <span class="album-card-count">${memories.length} 件の思い出</span>
+          ${dateStr ? `<span class="album-card-date">${dateStr}</span>` : ''}
         </div>
         <div class="album-card-actions">
           <button class="album-card-btn primary btn-select-album">選択して表示</button>
