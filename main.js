@@ -704,10 +704,17 @@ async function playAlbumTour() {
 
     tourTitle.textContent = mem.title || '無題の思い出';
     
-    let displayDate = new Date(mem.timestamp).toLocaleDateString();
+    let displayDate = '';
     if (mem.datetime) {
       const dt = new Date(mem.datetime);
-      displayDate = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      if (!isNaN(dt.getTime())) {
+        displayDate = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      }
+    } else if (mem.timestamp) {
+      const dt = new Date(mem.timestamp);
+      if (!isNaN(dt.getTime())) {
+        displayDate = dt.toLocaleDateString();
+      }
     }
     tourDate.textContent = displayDate;
     tourDiary.textContent = mem.diary || '';
