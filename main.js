@@ -372,13 +372,16 @@ function renderSidebar() {
   albumAllLi.addEventListener('click', () => setAlbumFilter(''));
   albumListEl.appendChild(albumAllLi);
   
-  albums.forEach(album => {
-    const li = document.createElement('li');
-    li.textContent = album;
-    if (currentFilterAlbum === album) li.classList.add('active');
-    li.addEventListener('click', () => setAlbumFilter(album));
-    albumListEl.appendChild(li);
-  });
+  if (currentFilterAlbum !== '') {
+    const selectedLi = document.createElement('li');
+    selectedLi.className = 'active';
+    selectedLi.style.display = 'flex';
+    selectedLi.style.justifyContent = 'space-between';
+    selectedLi.style.alignItems = 'center';
+    selectedLi.innerHTML = `<span>選択中: <b>${currentFilterAlbum}</b></span><span style="font-size: 0.8rem; margin-left: 6px; opacity: 0.7;">✕</span>`;
+    selectedLi.addEventListener('click', () => setAlbumFilter(''));
+    albumListEl.appendChild(selectedLi);
+  }
   
   albumDataList.innerHTML = '';
   albums.forEach(album => {
