@@ -739,7 +739,7 @@ async function playAlbumTour() {
   playNext();
 }
 
-function renderAlbumModalGrid(searchQuery = '') {
+function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
   const grid = document.getElementById('album-modal-grid');
   if (!grid) return;
 
@@ -753,9 +753,42 @@ function renderAlbumModalGrid(searchQuery = '') {
     albumsMap[albumName].push(mem);
   });
 
-  const albumNames = Object.keys(albumsMap).filter(name => {
+  let albumNames = Object.keys(albumsMap).filter(name => {
     if (!searchQuery) return true;
     return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Calculate dates and counts for sorting
+  const albumMetaMap = {};
+  albumNames.forEach(name => {
+    const memories = albumsMap[name];
+    const timestamps = memories
+      .map(m => m.datetime || m.timestamp)
+      .filter(Boolean)
+      .map(d => new Date(d).getTime())
+      .filter(t => !isNaN(t));
+
+    const minDate = timestamps.length > 0 ? Math.min(...timestamps) : 0;
+    const maxDate = timestamps.length > 0 ? Math.max(...timestamps) : 0;
+
+    albumMetaMap[name] = { minDate, maxDate, count: memories.length };
+  });
+
+  // Sort albumNames
+  albumNames.sort((a, b) => {
+    const metaA = albumMetaMap[a];
+    const metaB = albumMetaMap[b];
+
+    if (sortBy === 'oldest') {
+      return metaA.minDate - metaB.minDate;
+    } else if (sortBy === 'newest') {
+      return metaB.maxDate - metaA.maxDate;
+    } else if (sortBy === 'count') {
+      return metaB.count - metaA.count;
+    } else if (sortBy === 'name') {
+      return a.localeCompare(b, 'ja');
+    }
+    return 0;
   });
 
   if (albumNames.length === 0) {
@@ -879,10 +912,17 @@ function setupEventListeners() {
   const btnCloseAlbumModal = document.getElementById('btn-close-album-modal');
   const albumModal = document.getElementById('album-modal');
   const albumModalSearch = document.getElementById('album-modal-search');
+  const albumModalSort = document.getElementById('album-modal-sort');
 
   if (btnOpenAlbumModal && albumModal) {
+    const triggerRender = () => {
+      const query = albumModalSearch ? albumModalSearch.value.trim() : '';
+      const sort = albumModalSort ? albumModalSort.value : 'oldest';
+      renderAlbumModalGrid(query, sort);
+    };
+
     btnOpenAlbumModal.addEventListener('click', () => {
-      renderAlbumModalGrid('');
+      triggerRender();
       albumModal.classList.remove('hidden');
       if (window.innerWidth <= 768) {
         closeSidebar();
@@ -902,9 +942,11 @@ function setupEventListeners() {
     });
 
     if (albumModalSearch) {
-      albumModalSearch.addEventListener('input', (e) => {
-        renderAlbumModalGrid(e.target.value.trim());
-      });
+      albumModalSearch.addEventListener('input', triggerRender);
+    }
+
+    if (albumModalSort) {
+      albumModalSort.addEventListener('change', triggerRender);
     }
   }
   
