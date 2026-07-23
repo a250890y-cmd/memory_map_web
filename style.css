@@ -107,12 +107,71 @@ body {
   border-color: var(--primary-color);
 }
 
-.date-filter label {
-  display: block;
+.date-filter {
+  margin-top: 0.8rem;
+}
+
+.year-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 0.6rem;
+}
+
+.year-chip {
+  padding: 3px 9px;
   font-size: 0.75rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.year-chip:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.year-chip.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.date-range-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-input-date {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 6px;
+  font-size: 0.76rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.filter-input-date:focus {
+  border-color: var(--primary-color);
+  background: white;
+}
+
+.range-sep {
+  font-size: 0.8rem;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .sidebar-content h3 {

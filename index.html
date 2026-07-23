@@ -31,10 +31,20 @@
           <input type="text" id="search-input" placeholder="思い出を検索..." class="filter-input" />
           
           <div class="date-filter">
-            <label>期間絞り込み</label>
-            <input type="date" id="filter-date-from" class="filter-input small" />
-            <div style="text-align:center; color:var(--text-muted); font-size: 0.8rem; margin:2px 0;">〜</div>
-            <input type="date" id="filter-date-to" class="filter-input small" />
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="font-weight: 600; font-size: 0.82rem; color: var(--text-main); margin-bottom: 0;">期間で絞り込み</label>
+              <button id="btn-clear-date-filter" style="font-size: 0.75rem; color: var(--text-muted); background: transparent; border: none; cursor: pointer; display: none;" title="クリア">クリア ✕</button>
+            </div>
+            
+            <div id="year-chips-container" class="year-chips-container">
+              <button class="year-chip active" data-year="">すべて</button>
+            </div>
+
+            <div class="date-range-row">
+              <input type="date" id="filter-date-from" class="filter-input-date" />
+              <span class="range-sep">〜</span>
+              <input type="date" id="filter-date-to" class="filter-input-date" />
+            </div>
           </div>
         </div>
 

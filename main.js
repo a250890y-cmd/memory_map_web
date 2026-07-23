@@ -429,6 +429,98 @@ function renderSidebar() {
     opt.value = tag;
     tagDataList.appendChild(opt);
   });
+
+  renderYearChips();
+}
+
+function renderYearChips() {
+  const container = document.getElementById('year-chips-container');
+  if (!container) return;
+
+  const yearsSet = new Set();
+  allMemories.forEach(m => {
+    const rawDate = m.datetime || m.timestamp;
+    if (rawDate) {
+      const dt = new Date(rawDate);
+      if (!isNaN(dt.getTime())) {
+        yearsSet.add(dt.getFullYear());
+      }
+    }
+  });
+
+  const sortedYears = [...yearsSet].sort((a, b) => b - a);
+
+  container.innerHTML = '';
+  
+  const allChip = document.createElement('button');
+  allChip.className = 'year-chip';
+  if (!currentDateFrom && !currentDateTo) allChip.classList.add('active');
+  allChip.textContent = 'すべて';
+  allChip.addEventListener('click', () => {
+    currentDateFrom = '';
+    currentDateTo = '';
+    const dFrom = document.getElementById('filter-date-from');
+    const dTo = document.getElementById('filter-date-to');
+    if (dFrom) dFrom.value = '';
+    if (dTo) dTo.value = '';
+    updateYearChipsActive();
+    renderMarkers();
+  });
+  container.appendChild(allChip);
+
+  sortedYears.forEach(yr => {
+    const chip = document.createElement('button');
+    chip.className = 'year-chip';
+    
+    if (currentDateFrom === `${yr}-01-01` && currentDateTo === `${yr}-12-31`) {
+      chip.classList.add('active');
+    }
+    
+    chip.textContent = `${yr}年`;
+    chip.addEventListener('click', () => {
+      currentDateFrom = `${yr}-01-01`;
+      currentDateTo = `${yr}-12-31`;
+      const dFrom = document.getElementById('filter-date-from');
+      const dTo = document.getElementById('filter-date-to');
+      if (dFrom) dFrom.value = currentDateFrom;
+      if (dTo) dTo.value = currentDateTo;
+      updateYearChipsActive();
+      renderMarkers();
+    });
+    container.appendChild(chip);
+  });
+  
+  updateClearDateFilterBtn();
+}
+
+function updateYearChipsActive() {
+  const container = document.getElementById('year-chips-container');
+  if (!container) return;
+  
+  container.querySelectorAll('.year-chip').forEach(chip => {
+    chip.classList.remove('active');
+    const text = chip.textContent;
+    if (text === 'すべて' && !currentDateFrom && !currentDateTo) {
+      chip.classList.add('active');
+    } else if (text.endsWith('年')) {
+      const yr = text.replace('年', '');
+      if (currentDateFrom === `${yr}-01-01` && currentDateTo === `${yr}-12-31`) {
+        chip.classList.add('active');
+      }
+    }
+  });
+  
+  updateClearDateFilterBtn();
+}
+
+function updateClearDateFilterBtn() {
+  const btnClear = document.getElementById('btn-clear-date-filter');
+  if (!btnClear) return;
+  if (currentDateFrom || currentDateTo) {
+    btnClear.style.display = 'inline-block';
+  } else {
+    btnClear.style.display = 'none';
+  }
 }
 
 function setAlbumFilter(albumName) {
@@ -1189,6 +1281,7 @@ function setupEventListeners() {
   const searchInput = document.getElementById('search-input');
   const dateFrom = document.getElementById('filter-date-from');
   const dateTo = document.getElementById('filter-date-to');
+  const btnClearDateFilter = document.getElementById('btn-clear-date-filter');
   
   searchInput.addEventListener('input', (e) => {
     currentSearchQuery = e.target.value;
@@ -1196,12 +1289,24 @@ function setupEventListeners() {
   });
   dateFrom.addEventListener('change', (e) => {
     currentDateFrom = e.target.value;
+    updateYearChipsActive();
     renderMarkers();
   });
   dateTo.addEventListener('change', (e) => {
     currentDateTo = e.target.value;
+    updateYearChipsActive();
     renderMarkers();
   });
+  if (btnClearDateFilter) {
+    btnClearDateFilter.addEventListener('click', () => {
+      currentDateFrom = '';
+      currentDateTo = '';
+      dateFrom.value = '';
+      dateTo.value = '';
+      updateYearChipsActive();
+      renderMarkers();
+    });
+  }
 
   const btnCurrentLocation = document.getElementById('btn-current-location');
   const btnPinCurrent = document.getElementById('btn-pin-current');
