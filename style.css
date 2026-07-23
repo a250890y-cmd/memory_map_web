@@ -958,3 +958,11 @@ body {
   color: white;
 }
 
+.btn-album-trigger:hover {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  transform: translateY(-1px);
+}
+

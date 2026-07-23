@@ -39,13 +39,18 @@
         </div>
 
         <div class="sidebar-content">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
             <h3 style="margin-bottom: 0;">Albums</h3>
-            <div style="display: flex; gap: 4px;">
-              <button id="btn-open-album-modal" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(0,0,0,0.05); color: var(--text-main);">一覧</button>
-              <button id="btn-play-tour" class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color);">▶ ツアー再生</button>
-            </div>
+            <button id="btn-play-tour" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color); font-weight: 600;">▶ ツアー再生</button>
           </div>
+
+          <button id="btn-open-album-modal" class="btn-album-trigger" style="width: 100%; padding: 10px 14px; margin-bottom: 0.8rem; background: rgba(59, 130, 246, 0.08); color: var(--primary-color); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+            <span style="display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>すべてのアルバムを見る</span>
+            </span>
+            <span id="sidebar-album-count-badge" style="font-size: 0.75rem; opacity: 0.85; font-weight: 500;">(全0件) ➔</span>
+          </button>
           <ul id="sidebar-album-list" class="album-list">
             <li class="active" data-album="">すべて表示</li>
           </ul>

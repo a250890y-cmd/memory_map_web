@@ -383,6 +383,11 @@ function renderSidebar() {
     albumListEl.appendChild(selectedLi);
   }
   
+  const countBadge = document.getElementById('sidebar-album-count-badge');
+  if (countBadge) {
+    countBadge.textContent = `(全${albums.length}件) ➔`;
+  }
+  
   albumDataList.innerHTML = '';
   albums.forEach(album => {
     const opt = document.createElement('option');
