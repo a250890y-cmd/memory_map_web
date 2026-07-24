@@ -1071,10 +1071,10 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
           <span class="album-card-count">${memories.length} 件の思い出</span>
           ${dateStr ? `<span class="album-card-date">${dateStr}</span>` : ''}
         </div>
-        <div class="album-card-actions">
+        <div class="album-card-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 0.8rem;">
           <button class="album-card-btn primary btn-select-album">選択</button>
-          <button class="album-card-btn btn-tour-album">▶ ツアー</button>
-          <button class="album-card-btn btn-photobook-album" style="background: rgba(37,99,235,0.08); color: #2563eb;">📖 本</button>
+          <button class="album-card-btn btn-tour-album">ツアー</button>
+          <button class="album-card-btn btn-photobook-album" style="background: rgba(37,99,235,0.08); color: #2563eb; font-weight: 600;">PDF出力</button>
           <button class="album-card-btn btn-edit-album" style="background: rgba(0,0,0,0.05); color: var(--text-main);">編集</button>
         </div>
       </div>
@@ -1298,7 +1298,7 @@ function openPhotobookModal(albumName) {
   html += `
     <div class="photobook-page">
       <div>
-        <div class="photobook-section-title">📍 旅のロケーション & 行程一覧</div>
+        <div class="photobook-section-title">旅のロケーション & 行程一覧</div>
         <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.8rem; line-height: 1.6;">
           本アルバム「${albumName}」に記録された ${memories.length} か所の立ち寄りスポットの一覧です。
         </p>

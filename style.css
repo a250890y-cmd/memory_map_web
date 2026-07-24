@@ -1011,19 +1011,28 @@ body {
 
 .album-card-actions {
   margin-top: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
 
 .album-card-btn {
-  flex: 1;
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  border-radius: 8px;
+  width: 100%;
+  padding: 8px 6px;
+  font-size: 0.82rem;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.album-card-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .album-card-btn.primary {
