@@ -1239,7 +1239,126 @@ async function saveAlbumEdit() {
   }
 }
 
+let currentPhotobookAlbumName = '';
+
+function printPhotobookWindow(albumName) {
+  const container = document.getElementById('photobook-content');
+  if (!container) {
+    window.print();
+    return;
+  }
+
+  const printWin = window.open('', '_blank', 'width=900,height=1000');
+  if (!printWin) {
+    window.print();
+    return;
+  }
+
+  const contentHtml = container.innerHTML;
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <title>${albumName || 'MemoryMap'} - 旅のフォトブック</title>
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 12mm;
+        }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          margin: 0;
+          padding: 0;
+          background: white;
+          color: #0f172a;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .photobook-container {
+          display: block;
+          width: 100%;
+        }
+        .photobook-page {
+          background: white;
+          padding: 10mm 6mm;
+          min-height: 265mm;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          page-break-after: always;
+          break-after: page;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        .photobook-cover-title {
+          font-size: 2.4rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 0.5rem;
+        }
+        .photobook-cover-date {
+          font-size: 1.1rem;
+          color: #2563eb;
+          font-weight: 600;
+          margin-bottom: 1.5rem;
+        }
+        .photobook-cover-img {
+          width: 100%;
+          max-height: 440px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin-bottom: 1.5rem;
+        }
+        .photobook-section-title {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 1.2rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid #e2e8f0;
+        }
+        .photobook-itinerary-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          margin-bottom: 1rem;
+          padding-bottom: 0.8rem;
+          border-bottom: 1px dashed #e2e8f0;
+        }
+        .photobook-step-badge {
+          background: #2563eb;
+          color: white;
+          font-weight: 700;
+          font-size: 0.78rem;
+          padding: 4px 10px;
+          border-radius: 20px;
+          white-space: nowrap;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="photobook-container">
+        ${contentHtml}
+      </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            window.close();
+          }, 350);
+        };
+      </script>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+}
+
 function openPhotobookModal(albumName) {
+  currentPhotobookAlbumName = albumName;
   const modal = document.getElementById('photobook-modal');
   const container = document.getElementById('photobook-content');
   if (!modal || !container) return;
@@ -1406,7 +1525,7 @@ function setupEventListeners() {
 
   if (btnPrintPhotobook) {
     btnPrintPhotobook.addEventListener('click', () => {
-      window.print();
+      printPhotobookWindow(currentPhotobookAlbumName);
     });
   }
   if (btnClosePhotobook && photobookModal) {
