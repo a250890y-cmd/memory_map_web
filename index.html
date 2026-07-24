@@ -344,6 +344,33 @@
       </div>
     </div>
 
+    <!-- Photobook Preview Modal -->
+    <div id="photobook-modal" class="modal-overlay hidden" style="z-index: 2800; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);">
+      <div class="modal-content glass-panel scrollable" style="max-width: 840px; width: 95%; max-height: 92vh; padding: 1.5rem; background: #f8fafc; color: #0f172a;">
+        <!-- Top Toolbar -->
+        <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.8rem;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.3rem;">📖</span>
+            <h2 style="margin: 0; color: #0f172a; font-size: 1.3rem; font-weight: 700;">旅のフォトブック プレビュー</h2>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btn-print-photobook" class="btn primary" style="padding: 8px 16px; font-size: 0.88rem; font-weight: 600; background: #2563eb; color: white; border-radius: 20px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              PDF保存 / 印刷
+            </button>
+            <button id="btn-close-photobook" class="btn-close" style="margin: 0; background: rgba(0,0,0,0.06); border-radius: 50%; width: 34px; height: 34px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0f172a;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Photobook Printable Pages Container -->
+        <div id="photobook-content" class="photobook-container">
+          <!-- Dynamically generated Photobook pages -->
+        </div>
+      </div>
+    </div>
+
     <!-- Tour Slideshow Overlay -->
     <div id="tour-slideshow-overlay" class="tour-overlay hidden">
       <button id="btn-close-tour" class="btn-close-tour">

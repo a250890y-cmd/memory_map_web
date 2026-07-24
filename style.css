@@ -1069,3 +1069,126 @@ body {
   transform: translateY(-50%) scale(1.08) !important;
 }
 
+/* Photobook Styling & Print Layout */
+.photobook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.photobook-page {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  min-height: 840px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  page-break-after: always;
+  break-after: page;
+}
+
+.photobook-cover-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.photobook-cover-date {
+  font-size: 1.1rem;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.photobook-cover-img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  margin-bottom: 1.5rem;
+}
+
+.photobook-section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.photobook-itinerary-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.photobook-step-badge {
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  #photobook-modal,
+  #photobook-modal * {
+    visibility: visible;
+  }
+
+  #photobook-modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    background: white !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  #photobook-modal .modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .photobook-page {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 15mm 15mm !important;
+    min-height: 100vh !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+}
+

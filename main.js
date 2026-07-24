@@ -1074,6 +1074,7 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
         <div class="album-card-actions">
           <button class="album-card-btn primary btn-select-album">選択</button>
           <button class="album-card-btn btn-tour-album">▶ ツアー</button>
+          <button class="album-card-btn btn-photobook-album" style="background: rgba(37,99,235,0.08); color: #2563eb;">📖 本</button>
           <button class="album-card-btn btn-edit-album" style="background: rgba(0,0,0,0.05); color: var(--text-main);">編集</button>
         </div>
       </div>
@@ -1081,6 +1082,7 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
 
     const btnSelect = card.querySelector('.btn-select-album');
     const btnTour = card.querySelector('.btn-tour-album');
+    const btnPhotobook = card.querySelector('.btn-photobook-album');
     const btnEdit = card.querySelector('.btn-edit-album');
     const albumModal = document.getElementById('album-modal');
 
@@ -1108,6 +1110,13 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
       albumModal.classList.add('hidden');
       playAlbumTour();
     });
+
+    if (btnPhotobook) {
+      btnPhotobook.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPhotobookModal(name);
+      });
+    }
 
     if (btnEdit) {
       btnEdit.addEventListener('click', (e) => {
@@ -1230,9 +1239,188 @@ async function saveAlbumEdit() {
   }
 }
 
+function openPhotobookModal(albumName) {
+  const modal = document.getElementById('photobook-modal');
+  const container = document.getElementById('photobook-content');
+  if (!modal || !container) return;
+
+  const memories = allMemories
+    .filter(m => m.album && m.album.trim() === albumName)
+    .sort((a, b) => new Date(a.datetime || a.timestamp) - new Date(b.datetime || b.timestamp));
+
+  if (memories.length === 0) {
+    alert("このアルバムには思い出が含まれていません。");
+    return;
+  }
+
+  const customCover = customAlbumCovers[albumName];
+  const coverMem = memories.find(m => m.imageUrls && m.imageUrls.length > 0);
+  const coverUrl = customCover || (coverMem ? coverMem.imageUrls[0] : null);
+
+  let dateStr = '日付なし';
+  const validDates = memories
+    .map(m => m.datetime || m.timestamp)
+    .filter(Boolean)
+    .map(d => new Date(d))
+    .filter(d => !isNaN(d.getTime()))
+    .sort((a, b) => a - b);
+
+  if (validDates.length > 0) {
+    const first = validDates[0];
+    const last = validDates[validDates.length - 1];
+    const fmt = d => `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+    const d1 = fmt(first);
+    const d2 = fmt(last);
+    dateStr = d1 === d2 ? d1 : `${d1} 〜 ${d2}`;
+  }
+
+  let html = '';
+
+  // Page 1: COVER PAGE
+  html += `
+    <div class="photobook-page">
+      <div style="text-align: center; margin-top: 1rem;">
+        <img src="/logo.png" alt="MemoryMap Logo" style="height: 52px; object-fit: contain; margin-bottom: 2rem;" />
+        <h1 class="photobook-cover-title">${albumName}</h1>
+        <div class="photobook-cover-date">${dateStr}</div>
+        <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 2rem;">全 ${memories.length} 件の旅の思い出</div>
+      </div>
+      
+      ${coverUrl ? `<img src="${coverUrl}" class="photobook-cover-img" alt="${albumName}" />` : ''}
+
+      <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; font-size: 0.85rem; color: #94a3b8; font-weight: 500;">
+        Memory Map Travel Photobook
+      </div>
+    </div>
+  `;
+
+  // Page 2: ITINERARY & SPOT OVERVIEW
+  html += `
+    <div class="photobook-page">
+      <div>
+        <div class="photobook-section-title">📍 旅のロケーション & 行程一覧</div>
+        <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.8rem; line-height: 1.6;">
+          本アルバム「${albumName}」に記録された ${memories.length} か所の立ち寄りスポットの一覧です。
+        </p>
+
+        <div style="display: flex; flex-direction: column;">
+  `;
+
+  memories.forEach((m, idx) => {
+    let spotDate = '日付なし';
+    const rawDate = m.datetime || m.timestamp;
+    if (rawDate) {
+      const dt = new Date(rawDate);
+      if (!isNaN(dt.getTime())) {
+        spotDate = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`;
+      }
+    }
+
+    html += `
+      <div class="photobook-itinerary-item">
+        <span class="photobook-step-badge">SPOT ${idx + 1}</span>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <strong style="font-size: 1rem; color: #0f172a;">${m.title || '無題の思い出'}</strong>
+            <span style="font-size: 0.78rem; color: #64748b;">${spotDate}</span>
+          </div>
+          ${m.diary ? `<div style="font-size: 0.84rem; color: #475569; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${m.diary}</div>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.8rem; color: #94a3b8;">
+        <span>Memory Map</span>
+        <span>Page 2</span>
+      </div>
+    </div>
+  `;
+
+  // Page 3+: MEMORY JOURNAL PAGES
+  memories.forEach((m, idx) => {
+    let spotDate = '日付なし';
+    const rawDate = m.datetime || m.timestamp;
+    if (rawDate) {
+      const dt = new Date(rawDate);
+      if (!isNaN(dt.getTime())) {
+        spotDate = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`;
+      }
+    }
+
+    const photos = m.imageUrls || [];
+    const tagsHtml = (m.tags || []).map(t => `<span style="background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 500;">#${t}</span>`).join(' ');
+
+    let photosLayoutHtml = '';
+    if (photos.length === 1) {
+      photosLayoutHtml = `<img src="${photos[0]}" style="width: 100%; max-height: 380px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); margin-bottom: 1.5rem;" />`;
+    } else if (photos.length > 1) {
+      photosLayoutHtml = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
+          ${photos.map(url => `<img src="${url}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />`).join('')}
+        </div>
+      `;
+    }
+
+    html += `
+      <div class="photobook-page">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem;">
+            <span class="photobook-step-badge">SPOT ${idx + 1} / ${memories.length}</span>
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">${spotDate}</span>
+          </div>
+
+          <h2 style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-bottom: 1.2rem;">${m.title || '無題の思い出'}</h2>
+
+          ${photosLayoutHtml}
+
+          ${m.diary ? `
+            <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 1.2rem; border-radius: 0 10px 10px 0; font-size: 0.95rem; color: #334155; line-height: 1.7; white-space: pre-wrap; margin-bottom: 1.2rem;">${m.diary}</div>
+          ` : ''}
+
+          ${tagsHtml ? `<div style="display: flex; gap: 6px; flex-wrap: wrap;">${tagsHtml}</div>` : ''}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.8rem; color: #94a3b8;">
+          <span>${albumName}</span>
+          <span>Page ${idx + 3}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  modal.classList.remove('hidden');
+}
+
 function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
+
+  const btnPrintPhotobook = document.getElementById('btn-print-photobook');
+  const btnClosePhotobook = document.getElementById('btn-close-photobook');
+  const photobookModal = document.getElementById('photobook-modal');
+
+  if (btnPrintPhotobook) {
+    btnPrintPhotobook.addEventListener('click', () => {
+      window.print();
+    });
+  }
+  if (btnClosePhotobook && photobookModal) {
+    btnClosePhotobook.addEventListener('click', () => {
+      photobookModal.classList.add('hidden');
+    });
+  }
+  if (photobookModal) {
+    photobookModal.addEventListener('click', (e) => {
+      if (e.target === photobookModal) {
+        photobookModal.classList.add('hidden');
+      }
+    });
+  }
   
   const btnHamburger = document.getElementById('btn-hamburger');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
