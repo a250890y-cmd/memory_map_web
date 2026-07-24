@@ -1074,7 +1074,7 @@ function renderAlbumModalGrid(searchQuery = '', sortBy = 'oldest') {
         <div class="album-card-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 0.8rem;">
           <button class="album-card-btn primary btn-select-album">選択</button>
           <button class="album-card-btn btn-tour-album">ツアー</button>
-          <button class="album-card-btn btn-photobook-album" style="background: rgba(37,99,235,0.08); color: #2563eb; font-weight: 600;">PDF出力</button>
+          <button class="album-card-btn btn-photobook-album" style="background: rgba(37,99,235,0.08); color: #2563eb; font-weight: 600;">旅本</button>
           <button class="album-card-btn btn-edit-album" style="background: rgba(0,0,0,0.05); color: var(--text-main);">編集</button>
         </div>
       </div>
