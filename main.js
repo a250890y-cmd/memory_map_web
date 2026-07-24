@@ -416,20 +416,24 @@ function renderSidebar() {
   const tagListEl = document.getElementById('sidebar-tag-list');
   const tagDataList = document.getElementById('tag-datalist');
   
-  tagListEl.innerHTML = '';
-  const tagAllLi = document.createElement('li');
-  tagAllLi.textContent = 'すべて表示';
-  if (currentFilterTag === '') tagAllLi.classList.add('active');
-  tagAllLi.addEventListener('click', () => setTagFilter(''));
-  tagListEl.appendChild(tagAllLi);
-  
-  uniqueTags.forEach(tag => {
-    const li = document.createElement('li');
-    li.textContent = tag;
-    if (currentFilterTag === tag) li.classList.add('active');
-    li.addEventListener('click', () => setTagFilter(tag));
-    tagListEl.appendChild(li);
-  });
+  if (tagListEl) {
+    tagListEl.innerHTML = '';
+    const tagAllBtn = document.createElement('button');
+    tagAllBtn.className = 'sidebar-tag-chip';
+    if (currentFilterTag === '') tagAllBtn.classList.add('active');
+    tagAllBtn.textContent = 'すべて表示';
+    tagAllBtn.addEventListener('click', () => setTagFilter(''));
+    tagListEl.appendChild(tagAllBtn);
+    
+    uniqueTags.forEach(tag => {
+      const btn = document.createElement('button');
+      btn.className = 'sidebar-tag-chip';
+      if (currentFilterTag === tag) btn.classList.add('active');
+      btn.textContent = `#${tag}`;
+      btn.addEventListener('click', () => setTagFilter(tag));
+      tagListEl.appendChild(btn);
+    });
+  }
 
   tagDataList.innerHTML = '';
   uniqueTags.forEach(tag => {

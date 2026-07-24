@@ -184,31 +184,65 @@ body {
 
 .album-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .album-list li {
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  margin-bottom: 0.4rem;
   cursor: pointer;
   font-weight: 500;
+  font-size: 0.85rem;
   color: var(--text-main);
-  transition: transform 0.3s var(--spring-easing), background 0.2s, color 0.2s;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
 .album-list li:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.album-list li:active {
-  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .album-list li.active {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary-color);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.tag-chips-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sidebar-tag-chip {
+  padding: 4px 11px;
+  font-size: 0.78rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.sidebar-tag-chip:hover {
+  background: white;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-tag-chip.active {
   background: var(--primary-color);
   color: white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color);
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 /* Map Controls (Top Right) */

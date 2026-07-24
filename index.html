@@ -22,9 +22,11 @@
     <!-- Left Sidebar for Albums & Filters -->
     <aside class="sidebar glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
       <div>
-        <div class="sidebar-header">
-          <h2>Memory Map</h2>
-          <p>あなたの思い出</p>
+        <div class="sidebar-header" style="margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(0,0,0,0.06);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; background: linear-gradient(135deg, #1e293b, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Memory Map</h2>
+          </div>
         </div>
         
         <div class="sidebar-filters">
@@ -65,10 +67,10 @@
             <li class="active" data-album="">すべて表示</li>
           </ul>
 
-          <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Tags</h3>
-          <ul id="sidebar-tag-list" class="album-list">
-            <li class="active" data-tag="">すべて表示</li>
-          </ul>
+          <h3 style="margin-top: 1.4rem; margin-bottom: 0.6rem;">Tags</h3>
+          <div id="sidebar-tag-list" class="tag-chips-wrapper">
+            <button class="sidebar-tag-chip active" data-tag="">すべて表示</button>
+          </div>
         </div>
       </div>
       
