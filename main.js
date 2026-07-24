@@ -1405,7 +1405,7 @@ function openPhotobookModal(albumName) {
         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 2rem;">全 ${memories.length} 件の旅の思い出</div>
       </div>
       
-      ${coverUrl ? `<img src="${coverUrl}" class="photobook-cover-img" alt="${albumName}" />` : ''}
+      ${coverUrl ? `<div style="text-align: center; margin-bottom: 1.5rem;"><img src="${coverUrl}" class="photobook-cover-img" style="max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);" alt="${albumName}" /></div>` : ''}
 
       <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; font-size: 0.85rem; color: #94a3b8; font-weight: 500;">
         Memory Map Travel Photobook
@@ -1475,11 +1475,16 @@ function openPhotobookModal(albumName) {
 
     let photosLayoutHtml = '';
     if (photos.length === 1) {
-      photosLayoutHtml = `<img src="${photos[0]}" style="width: 100%; max-height: 380px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); margin-bottom: 1.5rem;" />`;
-    } else if (photos.length > 1) {
       photosLayoutHtml = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem;">
-          ${photos.map(url => `<img src="${url}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />`).join('')}
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <img src="${photos[0]}" style="max-width: 100%; max-height: 480px; width: auto; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);" />
+        </div>
+      `;
+    } else if (photos.length > 1) {
+      const maxW = photos.length === 2 ? '48%' : (photos.length === 3 ? '31%' : '48%');
+      photosLayoutHtml = `
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-bottom: 1.5rem;">
+          ${photos.map(url => `<img src="${url}" style="max-width: ${maxW}; max-height: 320px; width: auto; height: auto; object-fit: contain; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);" />`).join('')}
         </div>
       `;
     }
