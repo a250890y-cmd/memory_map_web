@@ -22,64 +22,85 @@
     <!-- Left Sidebar for Albums & Filters -->
     <aside class="sidebar glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
       <div>
-        <div class="sidebar-header" style="margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(0,0,0,0.06);">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <h2 style="margin: 0; font-size: 1.35rem; font-weight: 800; background: linear-gradient(135deg, #1e293b, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Memory Map</h2>
-          </div>
+        <!-- Sidebar Header -->
+        <div class="sidebar-header" style="margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px;">
+          <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 6C14.27 6 8 12.27 8 20c0 9.5 14 20 14 20s14-10.5 14-20c0-7.73-6.27-14-14-14zm0 18a4 4 0 110-8 4 4 0 010 8z" fill="#0f172a"/>
+            <path d="M33 13c2.2 0 4 1.8 4 4s-1.8 4-4 4c-.2 0-.5 0-.7-.1a4.502 4.502 0 01-8.5-1.7c0-.2 0-.4.1-.5A4 4 0 0133 13z" fill="#0f172a" opacity="0.75"/>
+          </svg>
+          <h2 style="margin: 0; font-size: 1.45rem; font-weight: 700; color: #0f172a; letter-spacing: -0.4px;">Memory Map</h2>
         </div>
         
+        <!-- Search & Date Filters -->
         <div class="sidebar-filters">
-          <input type="text" id="search-input" placeholder="思い出を検索..." class="filter-input" />
+          <div style="position: relative; margin-bottom: 1.2rem;">
+            <input type="text" id="search-input" placeholder="思い出を検索..." class="filter-input-search" style="width: 100%; padding: 0.6rem 2.4rem 0.6rem 1rem; border-radius: 20px; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(0, 0, 0, 0.08); font-size: 0.88rem; box-sizing: border-box;" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
           
-          <div class="date-filter">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label style="font-weight: 600; font-size: 0.82rem; color: var(--text-main); margin-bottom: 0;">期間で絞り込み</label>
-              <button id="btn-clear-date-filter" style="font-size: 0.75rem; color: var(--text-muted); background: transparent; border: none; cursor: pointer; display: none;" title="クリア">クリア ✕</button>
+          <div class="date-filter" style="margin-bottom: 1.2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-weight: 600; font-size: 0.84rem; color: #334155; margin-bottom: 0;">期間で絞り込み</label>
+              <button id="btn-clear-date-filter" style="font-size: 0.75rem; color: #64748b; background: transparent; border: none; cursor: pointer; display: none;" title="クリア">クリア ✕</button>
             </div>
             
-            <div id="year-chips-container" class="year-chips-container">
+            <div id="year-chips-container" class="year-chips-container" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
               <button class="year-chip active" data-year="">すべて</button>
             </div>
 
-            <div class="date-range-row">
-              <input type="date" id="filter-date-from" class="filter-input-date" />
-              <span class="range-sep">〜</span>
-              <input type="date" id="filter-date-to" class="filter-input-date" />
+            <div class="date-range-row" style="display: flex; align-items: center; gap: 6px;">
+              <input type="date" id="filter-date-from" class="filter-input-date" style="border-radius: 12px; height: 36px;" />
+              <span class="range-sep" style="color: #94a3b8;">〜</span>
+              <input type="date" id="filter-date-to" class="filter-input-date" style="border-radius: 12px; height: 36px;" />
             </div>
           </div>
         </div>
 
+        <!-- Albums & Tags Content -->
         <div class="sidebar-content">
+          <!-- Albums Header & Tour Button -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-            <h3 style="margin-bottom: 0;">Albums</h3>
-            <button id="btn-play-tour" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(59,130,246,0.1); color: var(--primary-color); font-weight: 600;">▶ ツアー再生</button>
+            <h3 style="margin-bottom: 0; font-size: 0.85rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">ALBUMS</h3>
+            <button id="btn-play-tour" class="btn-tour-pill" style="padding: 6px 14px; font-size: 0.78rem; background: #2563eb; color: white; font-weight: 600; border-radius: 20px; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); transition: all 0.2s ease;">▶ ツアー再生</button>
           </div>
 
-          <button id="btn-open-album-modal" class="btn-album-trigger" style="width: 100%; padding: 10px 14px; margin-bottom: 0.8rem; background: rgba(59, 130, 246, 0.08); color: var(--primary-color); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-            <span style="display: flex; align-items: center; gap: 8px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-              <span>すべてのアルバムを見る</span>
-            </span>
-            <span id="sidebar-album-count-badge" style="font-size: 0.75rem; opacity: 0.85; font-weight: 500;">(全0件) ➔</span>
+          <!-- All Albums Trigger Card with 2x2 Photo Preview Grid -->
+          <button id="btn-open-album-modal" class="btn-album-card-trigger" style="width: 100%; padding: 12px 14px; margin-bottom: 0.8rem; background: white; color: #0f172a; border: 1px solid rgba(0, 0, 0, 0.06); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); transition: all 0.2s ease;">
+            <div style="text-align: left;">
+              <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a;">すべてのアルバム</div>
+              <div id="sidebar-album-count-text" style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">(全0件)</div>
+            </div>
+            <div id="sidebar-album-preview-grid" class="album-mini-grid" style="display: grid; grid-template-columns: repeat(2, 28px); grid-template-rows: repeat(2, 28px); gap: 2px; border-radius: 8px; overflow: hidden; background: #e2e8f0;">
+              <!-- 2x2 Collage preview grid rendered dynamically -->
+            </div>
           </button>
-          <ul id="sidebar-album-list" class="album-list">
-            <li class="active" data-album="">すべて表示</li>
+
+          <!-- Active Album Selection Indicator -->
+          <ul id="sidebar-album-list" class="album-list" style="margin-bottom: 1.2rem;">
+            <li class="active" data-album="">
+              <span>すべて表示</span>
+              <span style="font-size: 0.85rem;">➔</span>
+            </li>
           </ul>
 
-          <h3 style="margin-top: 1.4rem; margin-bottom: 0.6rem;">Tags</h3>
-          <div id="sidebar-tag-list" class="tag-chips-wrapper">
+          <!-- Tags Header & Chips (Neutral Colors) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+            <h3 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">TAGS</h3>
+            <button id="btn-show-all-tags" style="font-size: 0.78rem; color: #2563eb; background: transparent; border: none; cursor: pointer; font-weight: 500;">すべて表示</button>
+          </div>
+          <div id="sidebar-tag-list" class="tag-chips-wrapper" style="display: flex; flex-wrap: wrap; gap: 6px;">
             <button class="sidebar-tag-chip active" data-tag="">すべて表示</button>
           </div>
         </div>
       </div>
       
-      <div style="margin-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
-        <button id="btn-set-home" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: var(--text-main); margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <!-- Bottom Section: Home Location Setup -->
+      <div style="margin-top: 1rem; padding-top: 0.8rem;">
+        <button id="btn-set-home" class="btn-card-home" style="width: 100%; padding: 12px; font-size: 0.88rem; font-weight: 600; background: white; color: #0f172a; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); transition: all 0.2s ease;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           自宅の場所を設定する
         </button>
-        <button id="btn-about" class="btn" style="width: 100%; padding: 8px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: var(--text-main); margin-bottom: 0.5rem;">このアプリについて (About)</button>
+        <button id="btn-about" class="btn" style="width: 100%; padding: 6px; font-size: 0.78rem; background: transparent; color: #64748b; border: none; margin-top: 6px; cursor: pointer;">このアプリについて (About)</button>
       </div>
     </aside>
 

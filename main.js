@@ -394,9 +394,62 @@ function renderSidebar() {
     albumListEl.appendChild(selectedLi);
   }
   
-  const countBadge = document.getElementById('sidebar-album-count-badge');
-  if (countBadge) {
-    countBadge.textContent = `(全${albums.length}件) ➔`;
+  const countText = document.getElementById('sidebar-album-count-text');
+  if (countText) {
+    countText.textContent = `(全${albums.length}件)`;
+  }
+  
+  const previewGrid = document.getElementById('sidebar-album-preview-grid');
+  if (previewGrid) {
+    const allPhotos = [];
+    allMemories.forEach(m => {
+      if (m.imageUrls && m.imageUrls.length > 0) {
+        allPhotos.push(...m.imageUrls);
+      }
+    });
+
+    previewGrid.innerHTML = '';
+    if (allPhotos.length === 0) {
+      previewGrid.style.display = 'none';
+    } else {
+      previewGrid.style.display = 'grid';
+      const first4 = allPhotos.slice(0, 4);
+      const remainingCount = allPhotos.length - 3;
+
+      first4.forEach((url, i) => {
+        const cell = document.createElement('div');
+        cell.style.position = 'relative';
+        cell.style.width = '100%';
+        cell.style.height = '100%';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        cell.appendChild(img);
+
+        if (i === 3 && remainingCount > 1) {
+          const overlay = document.createElement('div');
+          overlay.style.position = 'absolute';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.width = '100%';
+          overlay.style.height = '100%';
+          overlay.style.background = 'rgba(0,0,0,0.55)';
+          overlay.style.color = 'white';
+          overlay.style.fontSize = '0.65rem';
+          overlay.style.fontWeight = '700';
+          overlay.style.display = 'flex';
+          overlay.style.alignItems = 'center';
+          overlay.style.justifyContent = 'center';
+          overlay.textContent = `+${remainingCount}`;
+          cell.appendChild(overlay);
+        }
+
+        previewGrid.appendChild(cell);
+      });
+    }
   }
   
   albumDataList.innerHTML = '';
@@ -1375,6 +1428,13 @@ function setupEventListeners() {
       dateTo.value = '';
       updateYearChipsActive();
       renderMarkers();
+    });
+  }
+
+  const btnShowAllTags = document.getElementById('btn-show-all-tags');
+  if (btnShowAllTags) {
+    btnShowAllTags.addEventListener('click', () => {
+      setTagFilter('');
     });
   }
 
