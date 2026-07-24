@@ -1393,13 +1393,15 @@ function openPhotobookModal(albumName) {
     dateStr = d1 === d2 ? d1 : `${d1} 〜 ${d2}`;
   }
 
+  const fullLogoUrl = new URL('logo.png', window.location.href).href;
+
   let html = '';
 
   // Page 1: COVER PAGE
   html += `
     <div class="photobook-page">
       <div style="text-align: center; margin-top: 1rem;">
-        <img src="/logo.png" alt="MemoryMap Logo" style="height: 52px; object-fit: contain; margin-bottom: 2rem;" />
+        <img src="${fullLogoUrl}" alt="MemoryMap Logo" style="height: 52px; object-fit: contain; margin-bottom: 2rem;" />
         <h1 class="photobook-cover-title">${albumName}</h1>
         <div class="photobook-cover-date">${dateStr}</div>
         <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 2rem;">全 ${memories.length} 件の旅の思い出</div>
