@@ -6,6 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Memory Map App</title>
+    <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,12 +24,8 @@
     <aside class="sidebar glass-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
       <div>
         <!-- Sidebar Header -->
-        <div class="sidebar-header" style="margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px;">
-          <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22 6C14.27 6 8 12.27 8 20c0 9.5 14 20 14 20s14-10.5 14-20c0-7.73-6.27-14-14-14zm0 18a4 4 0 110-8 4 4 0 010 8z" fill="#0f172a"/>
-            <path d="M33 13c2.2 0 4 1.8 4 4s-1.8 4-4 4c-.2 0-.5 0-.7-.1a4.502 4.502 0 01-8.5-1.7c0-.2 0-.4.1-.5A4 4 0 0133 13z" fill="#0f172a" opacity="0.75"/>
-          </svg>
-          <h2 style="margin: 0; font-size: 1.45rem; font-weight: 700; color: #0f172a; letter-spacing: -0.4px;">Memory Map</h2>
+        <div class="sidebar-header" style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: flex-start;">
+          <img src="/logo.png" alt="MemoryMap Logo" style="height: 48px; max-width: 100%; object-fit: contain; mix-blend-mode: multiply;" />
         </div>
         
         <!-- Search & Date Filters -->
@@ -229,7 +226,8 @@
     <!-- About Modal -->
     <div id="about-modal" class="modal-overlay hidden" style="z-index: 2500;">
       <div class="modal-content glass-panel scrollable" style="text-align: center;">
-        <h2 style="color: var(--primary-color);">About</h2>
+        <img src="/logo.png" alt="MemoryMap" style="height: 60px; object-fit: contain; mix-blend-mode: multiply; margin-bottom: 0.5rem;" />
+        <h2 style="color: var(--primary-color); margin: 0 0 1rem 0;">About</h2>
         
         <h3 style="margin-top: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem; text-align: left;">プロジェクト概要</h3>
         <p style="font-size: 0.9rem; text-align: left; color: var(--text-muted); line-height: 1.5;">
