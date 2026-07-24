@@ -1155,6 +1155,7 @@ body {
 
 @media print {
   html, body {
+    width: 100% !important;
     height: auto !important;
     overflow: visible !important;
     background: white !important;
@@ -1162,19 +1163,32 @@ body {
     padding: 0 !important;
   }
 
-  /* Hide UI elements */
-  .no-print,
+  /* Hide every direct child of body except #photobook-modal */
+  body > *:not(#photobook-modal) {
+    display: none !important;
+  }
+
+  /* Explicitly hide map and all map control overlays */
+  #map,
+  .map-controls,
+  .bottom-controls,
+  .center-bottom-control,
   .sidebar,
-  .map-container,
-  .leaflet-control-container,
   .btn-hamburger,
   .sidebar-overlay,
+  .leaflet-control-container,
   .modal-overlay:not(#photobook-modal) {
     display: none !important;
   }
 
+  .no-print {
+    display: none !important;
+  }
+
   #photobook-modal {
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     display: block !important;
     width: 100% !important;
     height: auto !important;
