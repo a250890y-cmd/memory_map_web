@@ -101,7 +101,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           自宅の場所を設定する
         </button>
-        <button id="btn-about" class="btn" style="width: 100%; padding: 6px; font-size: 0.78rem; background: transparent; color: #64748b; border: none; margin-top: 6px; cursor: pointer;">このアプリについて (About)</button>
       </div>
     </aside>
 
@@ -226,67 +225,6 @@
 
     <!-- Hidden file input for local photo(s) -->
     <input type="file" id="file-input" accept="image/*" multiple class="hidden" />
-
-    <!-- About Modal -->
-    <div id="about-modal" class="modal-overlay hidden" style="z-index: 2500;">
-      <div class="modal-content glass-panel scrollable" style="text-align: center;">
-        <img src="./logo.png" alt="MemoryMap" style="height: 64px; object-fit: contain; margin-bottom: 0.5rem;" />
-        <h2 style="color: var(--primary-color); margin: 0 0 1rem 0;">About</h2>
-        
-        <h3 style="margin-top: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem; text-align: left;">プロジェクト概要</h3>
-        <p style="font-size: 0.9rem; text-align: left; color: var(--text-muted); line-height: 1.5;">
-          Memory Mapは、訪れた場所の写真や日記を地図上に記録し、視覚的に振り返ることができる空間的な日記アプリです。
-        </p>
-
-        <h3 style="margin-top: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 0.5rem; text-align: left;">グループメンバー</h3>
-        
-        <!-- Member 1 -->
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
-          <img src="/menbersphoto/ゆう.jpg" alt="Member 1" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-          <div>
-            <h4 style="margin: 0; font-size: 1rem;">[桃井優]</h4>
-            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [改善案出し・コーディング・データ収集] / 役職: [コーディング番長]</p>
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [旅行に行ったりするのが好きでこのマップを作りました！]</p>
-          </div>
-        </div>
-
-        <!-- Member 2 -->
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
-          <img src="/menbersphoto/しおん.JPG" alt="Member 2" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-          <div>
-            <h4 style="margin: 0; font-size: 1rem;">[小川史温]</h4>
-            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [改善案アイデア出し・データ収集] / 役職: [webマップ社員]</p>
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [よく寝ます]</p>
-          </div>
-        </div>
-
-          <!-- Member 2 -->
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
-          <img src="/menbersphoto/スティーブ.JPG" alt="Member 3" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-          <div>
-            <h4 style="margin: 0; font-size: 1rem;">[ペレラ・メブン・スティーブ]</h4>
-            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [改善案出し・データ収集] / 役職: [サポート役]</p>
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [挑戦した人はどこかにたどり着き、後悔はしない]</p>
-          </div>
-        </div>
-
-         <!-- Member 2 -->
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; text-align: left;">
-          <img src="/menbersphoto/大空.JPG" alt="Member 4" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
-          <div>
-            <h4 style="margin: 0; font-size: 1rem;">[宮城大空]</h4>
-            <p style="margin: 2px 0; font-size: 0.8rem; color: var(--primary-color); font-weight: 600;">担当: [改善案出し・データ収集] / 役職: [アイデア課長]</p>
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">一言: [バスケ好きです]</p>
-          </div>
-        </div>
-
-        <!-- Add more members by copying the div above -->
-
-        <div style="margin-top: 2rem;">
-          <button id="btn-close-about" class="btn primary" style="width: 100%;">閉じる</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Album List Modal -->
     <div id="album-modal" class="modal-overlay hidden" style="z-index: 2500;">

@@ -1729,28 +1729,7 @@ function setupEventListeners() {
       });
     });
   }
-  const btnAbout = document.getElementById('btn-about');
-  const aboutModal = document.getElementById('about-modal');
-  const btnCloseAbout = document.getElementById('btn-close-about');
 
-  if (btnAbout && aboutModal && btnCloseAbout) {
-    btnAbout.addEventListener('click', () => {
-      aboutModal.classList.remove('hidden');
-      if (window.innerWidth <= 768) {
-        closeSidebar();
-      }
-    });
-
-    btnCloseAbout.addEventListener('click', () => {
-      aboutModal.classList.add('hidden');
-    });
-
-    aboutModal.addEventListener('click', (e) => {
-      if (e.target === aboutModal) {
-        aboutModal.classList.add('hidden');
-      }
-    });
-  }
 
 
 
