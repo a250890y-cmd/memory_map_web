@@ -91,8 +91,12 @@
         </div>
       </div>
       
-      <!-- Bottom Section: Home Location Setup -->
+      <!-- Bottom Section: Home Location Setup & User Info -->
       <div style="margin-top: 1rem; padding-top: 0.8rem;">
+        <div id="user-info-bar" style="display: none; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.03); border-radius: 12px; margin-bottom: 8px;">
+          <span id="user-email-text" style="font-size: 0.76rem; color: #475569; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px;"></span>
+          <button id="btn-logout" style="font-size: 0.75rem; color: #ef4444; background: transparent; border: none; cursor: pointer; font-weight: 600;">ログアウト</button>
+        </div>
         <button id="btn-set-home" class="btn-card-home" style="width: 100%; padding: 12px; font-size: 0.88rem; font-weight: 600; background: white; color: #0f172a; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); transition: all 0.2s ease;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           自宅の場所を設定する
@@ -384,6 +388,30 @@
           <h2 id="tour-title"></h2>
           <div id="tour-date" class="tour-date"></div>
           <p id="tour-diary"></p>
+        </div>
+      </div>
+    <!-- Login / Authentication Modal -->
+    <div id="login-modal" class="modal-overlay hidden" style="z-index: 3000; backdrop-filter: blur(12px);">
+      <div class="modal-content glass-panel" style="max-width: 380px; width: 90%; text-align: center; padding: 2.2rem 1.8rem; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);">
+        <img src="./logo.png" alt="MemoryMap Logo" style="height: 52px; object-fit: contain; margin-bottom: 1.2rem;" />
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: #0f172a; margin-bottom: 0.4rem;">Memory Map へようこそ</h2>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem; line-height: 1.4;">アカウントにログインして思い出を安全に保存・共有しましょう</p>
+        
+        <div style="text-align: left; margin-bottom: 1rem;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 4px;">メールアドレス</label>
+          <input type="email" id="login-email" placeholder="example@email.com" class="filter-input-search" style="width: 100%; box-sizing: border-box; height: 42px; padding: 0.6rem 1rem; border-radius: 14px;" />
+        </div>
+
+        <div style="text-align: left; margin-bottom: 1.2rem;">
+          <label style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 4px;">パスワード</label>
+          <input type="password" id="login-password" placeholder="••••••••" class="filter-input-search" style="width: 100%; box-sizing: border-box; height: 42px; padding: 0.6rem 1rem; border-radius: 14px;" />
+        </div>
+
+        <div id="login-error" style="color: #ef4444; font-size: 0.8rem; margin-bottom: 1rem; display: none; text-align: left; background: #fef2f2; padding: 8px 12px; border-radius: 10px; border: 1px solid #fecaca;"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 1rem;">
+          <button id="btn-login" class="btn primary" style="width: 100%; padding: 11px; font-weight: 600; border-radius: 14px; font-size: 0.92rem; background: #2563eb; color: white; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">ログイン</button>
+          <button id="btn-signup" class="btn" style="width: 100%; padding: 11px; font-weight: 600; border-radius: 14px; font-size: 0.92rem; background: rgba(0,0,0,0.05); color: #334155; border: none; cursor: pointer;">新規アカウント作成</button>
         </div>
       </div>
     </div>

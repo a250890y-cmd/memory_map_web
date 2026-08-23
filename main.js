@@ -8,6 +8,8 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet-control-geocoder';
 import { saveMemory, getAllMemories, updateMemory, deleteMemory } from './storage';
 import { processLocalPhoto } from './local_photos';
+import { auth } from './firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -200,15 +202,32 @@ async function init() {
     }
   });
 
+  const loginModal = document.getElementById('login-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
+  const userInfoBar = document.getElementById('user-info-bar');
+  const userEmailText = document.getElementById('user-email-text');
   
-  loadingOverlay.classList.remove('hidden');
-  try {
-    await loadMemories();
-  } catch (e) {
-    console.error("Error loading data:", e);
-  }
-  loadingOverlay.classList.add('hidden');
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      if (loginModal) loginModal.classList.add('hidden');
+      if (userInfoBar) userInfoBar.style.display = 'flex';
+      if (userEmailText) userEmailText.textContent = user.email || 'ログイン中';
+
+      if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+      try {
+        await loadMemories();
+      } catch (e) {
+        console.error("Error loading data:", e);
+      }
+      if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    } else {
+      if (loginModal) loginModal.classList.remove('hidden');
+      if (userInfoBar) userInfoBar.style.display = 'none';
+      allMemories = [];
+      renderSidebar();
+      renderMarkers();
+    }
+  });
 }
 
 function placeTempMarker(lat, lng) {
@@ -1525,6 +1544,62 @@ function openPhotobookModal(albumName) {
 function setupEventListeners() {
   const memoryModal = document.getElementById('memory-modal');
   const loadingOverlay = document.getElementById('loading-overlay');
+
+  const emailInput = document.getElementById('login-email');
+  const passwordInput = document.getElementById('login-password');
+  const btnLogin = document.getElementById('btn-login');
+  const btnSignup = document.getElementById('btn-signup');
+  const btnLogout = document.getElementById('btn-logout');
+  const loginError = document.getElementById('login-error');
+
+  const handleAuth = async (action) => {
+    if (!emailInput || !passwordInput) return;
+    const email = emailInput.value.trim();
+    const pwd = passwordInput.value.trim();
+    if (!email || !pwd) {
+      if (loginError) {
+        loginError.textContent = "メールアドレスとパスワードを入力してください";
+        loginError.style.display = 'block';
+      }
+      return;
+    }
+    if (loginError) loginError.style.display = 'none';
+    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+    try {
+      if (action === 'login') {
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, pwd);
+      }
+      if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    } catch (e) {
+      if (loadingOverlay) loadingOverlay.classList.add('hidden');
+      if (loginError) {
+        let msg = e.message || "認証に失敗しました";
+        if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+          msg = "メールアドレスまたはパスワードが正しくありません";
+        } else if (e.code === 'auth/email-already-in-use') {
+          msg = "このメールアドレスは既に登録されています";
+        } else if (e.code === 'auth/weak-password') {
+          msg = "パスワードは6文字以上で入力してください";
+        }
+        loginError.textContent = msg;
+        loginError.style.display = 'block';
+      }
+    }
+  };
+
+  if (btnLogin) btnLogin.addEventListener('click', () => handleAuth('login'));
+  if (btnSignup) btnSignup.addEventListener('click', () => handleAuth('signup'));
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error("Signout error:", e);
+      }
+    });
+  }
 
   const btnPrintPhotobook = document.getElementById('btn-print-photobook');
   const btnClosePhotobook = document.getElementById('btn-close-photobook');
