@@ -207,6 +207,13 @@ async function init() {
   const userInfoBar = document.getElementById('user-info-bar');
   const userEmailText = document.getElementById('user-email-text');
   
+  // Always sign out on initial app load so login modal pops up every time
+  try {
+    await signOut(auth);
+  } catch (e) {
+    // ignore
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       if (loginModal) loginModal.classList.add('hidden');
