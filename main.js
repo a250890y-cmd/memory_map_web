@@ -206,18 +206,13 @@ async function init() {
   const loadingOverlay = document.getElementById('loading-overlay');
   const userInfoBar = document.getElementById('user-info-bar');
   const userEmailText = document.getElementById('user-email-text');
+  const btnOpenLogin = document.getElementById('btn-open-login');
   
-  // Always sign out on initial app load so login modal pops up every time
-  try {
-    await signOut(auth);
-  } catch (e) {
-    // ignore
-  }
-
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       if (loginModal) loginModal.classList.add('hidden');
       if (userInfoBar) userInfoBar.style.display = 'flex';
+      if (btnOpenLogin) btnOpenLogin.style.display = 'none';
       if (userEmailText) userEmailText.textContent = user.email || 'ログイン中';
 
       if (loadingOverlay) loadingOverlay.classList.remove('hidden');
@@ -230,6 +225,7 @@ async function init() {
     } else {
       if (loginModal) loginModal.classList.remove('hidden');
       if (userInfoBar) userInfoBar.style.display = 'none';
+      if (btnOpenLogin) btnOpenLogin.style.display = 'flex';
       allMemories = [];
       renderSidebar();
       renderMarkers();
@@ -1605,6 +1601,13 @@ function setupEventListeners() {
       } catch (e) {
         console.error("Signout error:", e);
       }
+    });
+  }
+
+  const btnOpenLogin = document.getElementById('btn-open-login');
+  if (btnOpenLogin && loginModal) {
+    btnOpenLogin.addEventListener('click', () => {
+      loginModal.classList.remove('hidden');
     });
   }
 
