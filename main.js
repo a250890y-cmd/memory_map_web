@@ -1611,6 +1611,13 @@ function setupEventListeners() {
     });
   }
 
+  const btnCloseLogin = document.getElementById('btn-close-login');
+  if (btnCloseLogin && loginModal) {
+    btnCloseLogin.addEventListener('click', () => {
+      loginModal.classList.add('hidden');
+    });
+  }
+
   const btnPrintPhotobook = document.getElementById('btn-print-photobook');
   const btnClosePhotobook = document.getElementById('btn-close-photobook');
   const photobookModal = document.getElementById('photobook-modal');
