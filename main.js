@@ -141,28 +141,6 @@ async function init() {
   
   renderHomeMarker();
 
-  map.on('contextmenu', (e) => {
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    const popupContent = document.createElement('div');
-    popupContent.innerHTML = `<div style="text-align: center;">
-      <button class="btn primary" style="padding: 6px 12px; font-size: 0.9rem; border-radius: 8px; width: 100%;">ここを自宅に設定する</button>
-    </div>`;
-    
-    popupContent.querySelector('button').addEventListener('click', () => {
-      homeLocation = { lat, lng };
-      localStorage.setItem('homeLocation', JSON.stringify(homeLocation));
-      renderHomeMarker();
-      map.closePopup();
-      if (currentFilterAlbum) drawAlbumRoute(getFilteredMemories());
-    });
-    
-    L.popup()
-      .setLatLng(e.latlng)
-      .setContent(popupContent)
-      .openOn(map);
-  });
-  
   markersLayer = L.markerClusterGroup({
     maxClusterRadius: 40,
     spiderfyOnMaxZoom: true,
@@ -1366,12 +1344,21 @@ function printPhotobookWindow(albumName) {
         ${contentHtml}
       </div>
       <script>
-        window.onload = function() {
+        async function handlePrint() {
+          const imgs = Array.from(document.images);
+          await Promise.all(imgs.map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+              img.onload = img.onerror = resolve;
+            });
+          }));
           setTimeout(function() {
             window.print();
             window.close();
-          }, 350);
-        };
+          }, 200);
+        }
+        window.addEventListener('load', handlePrint);
+        if (document.readyState === 'complete') handlePrint();
       </script>
     </body>
     </html>
